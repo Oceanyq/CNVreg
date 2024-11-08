@@ -1,0 +1,35 @@
+Package: WTSMTH
+Type: Package
+Title: CNV Penalized WTSMTH
+Version: 0.
+Authors@R: c(person("Yaqin", "Si",email = "ysi4@ncsu.edu", role = c("aut")), 
+             person("Shannon T.", "Holloway",email = "shannon.t.holloway@gmail.com", role = c("ctb", "cre")),
+             person("Jung-Ying", "Tzeng",email = "jytzeng@ncsu.edu", role = c("ctb")))
+Description: Description
+License: GPL-3
+Depends: R (>= 3.5.0)
+Imports: stats
+Encoding: UTF-8
+NeedsCompilation: no
+LazyData: true
+Suggests: rmarkdown, knitr
+Maintainer: Shannon T. Holloway <shannon.t.holloway@gmail.com>
+      Author: Yaqin Si, Shannon T. Holloway, Jung-Ying Tzeng
+RoxygenNote: 7.3.2
+Collate: 
+    'utils.R'
+    'probPred.R'
+    'linearPred.R'
+    'logLH.R'
+    'loss.R'
+    'helpful_tests.R'
+    'ctnsSolution.R'
+    'rwlsSolution.R'
+    'Wtsmth_Fit.R'
+    'nfoldSplit.R'
+    'WTsmth_nFold_CV.R'
+    'breakCNV.R'
+    'wideDataRaw.R'
+    'wideFrequency.R'
+    'weightMatrix.R'
+    'prep.R'
