@@ -8,6 +8,11 @@
 #'   values will be transformed to 2^(lambda1).
 #' @param lambda2 A numeric vector Lambda_2 values to be considered. Provided
 #'   values will be transformed to 2^(lambda2).
+#' @param weight A character. The type of weighting. Must be one of 
+#'   eql, keql, wcs, kwcs, wif, kwif indicating
+#'   equal weight, K x equal weight, Cosine similarity, K x cosine similarity, 
+#'   inverse frequency, and K x inverse frequency, where K is the number of
+#'   individuals in each CNVR
 #' @param family A character. The family of the outcome. Must be one of
 #'   "gaussian" (Y is continuous) or "binomial" (Y is binary).
 #' @param cv.control A list object. Allows user to control cross-validation
@@ -37,98 +42,106 @@
 #' @import foreach
 #' 
 #' @export
-cvfit_WTSMTH <- function(data, lambda1, lambda2,
+cvfit_WTSMTH <- function(data, lambda1, lambda2, weight,
                          family = c("gaussian", "binomial"), 
                          cv.control = list(n.fold = 5L, 
                                            n.core = 1L, 
                                            stratified = FALSE),
-                         iter.control = list(max_iter = 8L, 
-                                             tol_beta = 10^(-3), 
-                                             tol_loss = 10^(-6))) {
+                         iter.control = list(max.iter = 8L, 
+                                             tol.beta = 10^(-3), 
+                                             tol.loss = 10^(-6))) {
 
   # take the first value as default
   family <- match.arg(family)
 
   stopifnot(
-    "`data` must be a 'WTsth.data' object" = !missing(data) && inherits(data, "WTsth.data"),
+    "`data` must be a 'WTsmth.data' object" = !missing(data) && inherits(data, "WTsmth.data"),
     "`lambda1 must be a numeric vector" = !missing(lambda1) && .isNumericVector(lambda1),
     "`lambda2 must be a numeric vector" = !missing(lambda2) && .isNumericVector(lambda2),
+    "`weight` must be one of eql, keql, wcs, kwcs, wif, kwif" =
+      is.null(weight) || {.isCharacterVector(weight, 1L) &&
+          weight %in% c("eql", "keql", "wcs", "kwcs", "wif", "kwif")},
     "`cv.control` must be a list; allowed elements are n.fold, n.core, and stratified" = 
       .isNamedList(cv.control, c("n.fold", "n.core", "stratified")),
     "`iter.control` must be a list; allowed elements are max.iter, tol.beta, and tol.loss" = 
-      .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss")),
+      .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
   
-  iter.control <- .testIterControl(iter.control, family)  
-  cv.control <- .testCVControl(cv.control)
+  iter.control <- .testIterControl(iter.control)  
+  cv.control <- .testCVControl(cv.control, family)
   
   if (family == "binomial") data$Y <- .confirmBinary(data$Y)
+  if (family == "gaussian") data$Y <- .confirmContinuous(data$Y)
   
   CNV_info <- data$CNVR.info
 
-  data <- .expandWTsmth(data)
+  data <- .expandWTsmth(data, weight = weight)
   
   # evaluate loss for all candidates lmd1 + lmd2
   #####################K-fold cross-validation#############
 
   # nfold split (stratified if indicated)
-  tr <- .nfoldSplit(Y = data$Y, cv.control = cv.control)
+  tr <- .nfoldSplit(Y = drop(data$Y), unique(rownames(data$X)), cv.control = cv.control)
 
   loss_matrix <- matrix(0.0, nrow = length(lambda1), ncol = length(lambda2))
 
   if (cv.control$n.core > 1L) {
     cl <- parallel::makeCluster(cv.control$n.core)
     doParallel::registerDoParallel(cl)
-    on.exit(stopCluster(cl))
+    on.exit(parallel::stopCluster(cl))
   }
 
   idx <- expand.grid(seq_len(cv.control$n.fold), 
                      seq_along(lambda1), 
                      seq_along(lambda2))
   idx_loss <- cbind(idx[, 1L], lambda1[idx[, 2L]], lambda2[idx[, 3L]])
+  
+  i <- NULL # quieting CRAN warning
 
-  loss_list <- foreach::foreach(i = seq_len(nrow(idx)), .combine = "rbind") %dopar% {
+  loss_list <- foreach::foreach(i = seq_len(nrow(idx)), 
+                                .packages = c("WTSMTH"),
+                                .combine = "rbind") %dopar% {
     
     subset <- tr != idx[i, 1L]
 
     #fit model
-    beta_lmd21 <- Wtsmth_Fit(data = data, 
-                             lmd1 = lambda1[idx[i, 2L]], 
-                             lmd2 = lambda2[idx[i, 3L]],
+    beta_lmd21 <- fit_WTSMTH(data = data, 
+                             lambda1 = lambda1[idx[i, 2L]], 
+                             lambda2 = lambda2[idx[i, 3L]],
                              family = family, 
                              iter.control = iter.control,
                              subset = subset)
 
     #evaluate loss
     # for continuous this will be a vector(n); for binary it will be scalar
-    loss <- .loss(X = data$XZ[subset, ], 
-                  Y = data$Y[subset], 
+    loss <- .loss(X = data$XZ[!subset, ], 
+                  Y = data$Y[!subset], 
                   beta = beta_lmd21, 
                   family = family)
   }
 
   idx_loss <- cbind(idx_loss, loss_list) |> data.frame()
-  colnames(idx_loss) <- c("fold", "lmd1", "lmd2", "loss")
+  colnames(idx_loss) <- c("fold", "lambda1", "lambda2", "loss")
 
   #transform the output and take average over folds
   loss_matrix <- idx_loss %>%
-    dplyr::group_by(lmd1, lmd2, .drop = FALSE) %>%
+    dplyr::group_by(lambda1, lambda2, .drop = FALSE) %>%
     dplyr::summarise(
       avg_loss = mean(loss)
       )
+
   #best lmd1+lmd2 and coefficients
   Mloss <- arrayInd(which.min(loss_matrix$avg_loss), length(loss_matrix$avg_loss))
 
   #tunning parameters and beta coefficients
-  b_lmd1 = loss_matrix$lmd1[Mloss[1L, 1L]] #row
-  b_lmd2 = loss_matrix$lmd2[Mloss[1L, 1L]]#col
+  b_lmd1 = loss_matrix$lambda1[Mloss[1L, 1L]] #row
+  b_lmd2 = loss_matrix$lambda2[Mloss[1L, 1L]]#col
 
-  beta_y_cv <- Wtsmth_Fit(XZ = data$XZ, 
-                          Y = data$Y, 
-                          A_matrix = data$A, 
-                          lmd1 = b_lmd1, lmd2 = b_lmd2,
-                          family = family, max_iter = max_iter, 
-                          end_difbeta = tol_beta, end_difloss = tol_loss)
+  beta_y_cv <- fit_WTSMTH(data = data, 
+                          lambda1 = b_lmd1, 
+                          lambda2 = b_lmd2,
+                          family = family, 
+                          iter.control = iter.control)
 
   list("selected.lambda" = c(b_lmd1, b_lmd2),
        "coef" = beta_y_cv)
