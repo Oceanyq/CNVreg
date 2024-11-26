@@ -217,12 +217,26 @@ The output of fit_WTSMTH() function gives the best pair of  $\lambda_1$ and $\la
 #b_c_true[paste0("del", 64:74)] : 1,
 #b_b_true[paste0("del", 64:74)] : 2 
 #######################################
-#print(b_c[c(paste0("del", 64:74),"age")])
-#print(b_b[c(paste0("del", 64:74),"age")])
+#print(b_c[c(paste0("del", 64:74),"SEX")])
+#print(b_b[c(paste0("del", 64:74),"SEX")])
+#b_c[c(paste0("del", 64:74),"SEX")]
+#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
+#1.0697263 0.7340689 0.6140854 0.7105877 0.9127402 1.1526129 0.9647277 0.6429805 0.3862995 0.2116475 0.1246587 0.1926006
 
-#print(b_c_cv$coef[c(paste0("del", 64:74),"age")])
-#print(b_b_cv$coef[c(paste0("del", 64:74),"age")])
+#b_b[c(paste0("del", 64:74),"SEX")]
+#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74        SEX 
+#0.33640068 0.06808373 0.00000000 0.00000000 0.00000000 0.09740618 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.15653618 
+########CV tuning 
+#for ctns: tuning parameters selected: lambda1 =-9, lambda2=-2
+#print(b_c_cv$coef[c(paste0("del", 64:74),"SEX")])
+#
+#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
+#1.2101534 0.6822391 0.4956110 0.6679145 0.9172944 1.2647549 1.0794324 0.5713049 0.1205602 0.0000000 0.0000000 0.207478
 
+#for binary: tuning parameters selected: lambda1 =-12, lambda2=-4
+#print(b_b_cv$coef[c(paste0("del", 64:74),"SEX")])
+#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74  SEX
+#0.18972697 0.00000000 0.00000000 0.00000000 0.07393405 0.25124648 0.01072678 0.00000000 0.00000000 0.00000000 0.00000000 0.2061167
 
 ### False positives
 
