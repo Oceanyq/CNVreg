@@ -1,6 +1,6 @@
-Package: WTSMTH
+Package: CNVreg
 Type: Package
-Title: CNV Penalized WTSMTH
+Title: CNV Penalized regression
 Version: 0.1
 Authors@R: c(person("Yaqin", "Si",email = "ysi4@ncsu.edu", role = c("aut")), 
              person("Shannon T.", "Holloway",email = "shannon.t.holloway@gmail.com", role = c("ctb", "cre")),
