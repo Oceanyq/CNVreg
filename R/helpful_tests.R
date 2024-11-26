@@ -105,13 +105,13 @@
   if (any(CNV$BP1 > CNV$BP2)) {
     stop("`CNV$BP2 must be great than CNV$BP1 for all records", call. = FALSE)
   }
-
+  
   if (!is.vector(CNV$TYPE, mode = "integer") ||
       !all(CNV$TYPE %in% c(0L, 1L, 3L:9999L)) ||
       sum(CNV$TYPE == 2L) != 0L) {
     stop("`CNV$Type` must be integer in [0, 1, 3, ..., 9999]", call. = FALSE)
   }
-
+  
   TRUE
   
 }
@@ -169,7 +169,7 @@
   if (any(!{tst})) {
     warning("ignored cv.control elements ",
             paste(names(cv.control)[!{tst}], collapse = ", ")
-            )
+    )
     cv.control <- cv.control[tst]
   }
   

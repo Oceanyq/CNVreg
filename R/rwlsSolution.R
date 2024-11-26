@@ -22,19 +22,19 @@
 #' 
 #' @keywords internal
 .rwlsSolution <- function(data, X.app, Y.app, lambda1, iter.control) {
-
+  
   stopifnot(
     "`data` must be a 'WTsth.data' object" = !missing(data) && 
-      inherits(data, "WTsth.data") && !is.null(data$XZ),
-    " `lambda1 must be a scalar numeric" =
+      inherits(data, "WTsmth.data") && !is.null(data$XZ),
+    "`lambda1 must be a scalar numeric" =
       !missing(lambda1) && .isNumericVector(lambda1, 1L),
     "`iter.control` must be a list; allowed elements are max.iter, tol.beta, and tol.loss" = 
       .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
-
-  ZN = nrow(XZ)
-  Xp = ncol(XZ)
-
+  
+  ZN = nrow(data$XZ)
+  Xp = ncol(data$XZ)
+  
   ##initial beta values, default type.measure="deviance"
   fit_yb_init <- tryCatch(glmnet::glmnet(x = data$XZ, y = data$Y, family = "binomial"),
                           error = function(e){
@@ -44,57 +44,57 @@
   #iteration 0_initial
   iter <- 0L
   beta_cur <- glmnet::coef.glmnet(fit_yb_init, s = 2^lambda1) |> drop()
-
+  
   #iteratively update the coef
-
+  
   #stop criteria
   #   1.coef change: set initial change of beta values as max(abs(beta))
   maxdif <- max(abs(beta_cur))
-
+  
   #2. loss change: Negtive log likelihood,set initial as current loss
   loss <- {-1.0 / nrow(data$XZ)} * 
-    .loss(X = data$XZ, Y = data$Y, beta = beta_cur, family = "binomial")
+    .loss(X = data$XZ, Y = drop(data$Y), beta = beta_cur, family = "binomial")
   loss_dif <- loss
-
+  
   while ((iter < iter.control$max.iter) && 
          (maxdif > iter.control$tol.beta) && 
          (loss_dif > iter.control$tol.loss)) {
-
+    
     # prepare linear prediction and probability prediction for iteration update
     linear_pred <- .linearPred(data$XZ, beta_cur)
     prob_pred <- .probPred(linear_pred)
-
+    
     # update u*, v*
     iter <- iter + 1L
     u <- linear_pred + {data$Y - prob_pred} / {prob_pred * {1.0 - prob_pred}}
-
+    
     sqrt_v <- sqrt(prob_pred * {1.0 - prob_pred})
-
+    
     X_update <- cbind(1.0, data$XZ) * sqrt_v
     X_aug <- rbind(X_update, X.app)
-
+    
     ## update Y_augmented
     y_update <- u * sqrt_v
     names(y_update) = rownames(data$XZ)
     Y_aug <- c(y_update, Y.app)
-
-    beta_next <- .ctnsSolution(X.aug = X_aug, Y.aug = Y_aug, lambda1 = lambda1)
-
+    
+    beta_next <- .ctnsSolution(data = data, X.app = X_aug, Y.app = Y_aug, lambda1 = lambda1)
+    
     # stop criteria  beta
     beta_dif <- abs(beta_next - beta_cur)
     maxdif <- max(abs(beta_dif))
-
+    
     # stop criteria loss function
     loss_next <- {-1.0 / nrow(data$XZ)} * 
-      .loss(X = data$XZ, Y = data$Y, beta = beta_next, family = "binomial")
+      .loss(X = data$XZ, Y = drop(data$Y), beta = beta_next, family = "binomial")
     loss_dif <- abs(loss - loss_next)
-
+    
     if (is.infinite(loss)) {
       loss_dif <- 0.0
       iter <- iter - 1L
       break
     }
-
+    
     loss <- loss_next
     #prepare for next iteration
     beta_cur <- beta_next

@@ -50,13 +50,13 @@ fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
     "`lambda2 must be a numeric vector" = !missing(lambda2) && .isNumericVector(lambda2, 1L),
     "`weight` must be one of eql, keql, wcs, kwcs, wif, kwif" =
       is.null(weight) || {.isCharacterVector(weight, 1L) &&
-      weight %in% c("eql", "keql", "wcs", "kwcs", "wif", "kwif")},
+          weight %in% c("eql", "keql", "wcs", "kwcs", "wif", "kwif")},
     "`iter.control` must be a list; allowed elements are max.iter, tol.beta, and tol.loss" = 
       .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
   
   iter.control <- .testIterControl(iter.control)  
-
+  
   if (family == "binomial") data$Y <- .confirmBinary(data$Y)
   if (family == "gaussian") data$Y <- .confirmContinuous(data$Y)
   
@@ -66,12 +66,12 @@ fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
   } else {
     if (!is.null(weight)) warning("`weight` input ignored; data already expanded", call. = FALSE)
   }
-
+  
   if (!is.null(extras$subset)) {
     data$Y <- data$Y[extras$subset]
     data$XZ <- data$XZ[extras$subset, , drop = FALSE]
   }
-
+  
   X_app <- cbind(0.0, sqrt(2.0^lambda2) * data$A)
   rownames(X_app) <- rownames(data$A)
   Y_app <- rep.int(0L, nrow(data$A))

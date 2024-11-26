@@ -3,7 +3,7 @@
 #'  with no CNV activity) as CNV fragments in wide format (as defined in CNVRular)
 #'
 #' @noRd
-#' @param itv.long A data.frame object containin
+#' @param cnv.long A data.frame object containin
 #'   \itemize{
 #'     \item ID The CNV IDs replicated for each grid unit spanned by the record
 #'     \item CHR The chromosome of the CNV data
@@ -18,35 +18,35 @@
 #' @import Matrix
 #' 
 #' @keywords internal
-.wideDataRaw <- function(itv.long) {
+.wideDataRaw <- function(cnv.long) {
   
   stopifnot(
-    "`itv.long` data.frame is missing or not appropriately defined" =
-      !missing(itv.long) && is.data.frame(itv.long) &&
-      all(c("ID", "CHR", "idx", "TYPE", "deldup", "AUC") %in% colnames(itv.long))
+    "`cnv.long` data.frame is missing or not appropriately defined" =
+      !missing(cnv.long) && is.data.frame(cnv.long) &&
+      all(c("ID", "CHR", "grid.id", "TYPE", "deldup", "AUC") %in% colnames(cnv.long))
   )
-
-  itv.long <- itv.long[order(itv.long$ID, itv.long$idx, -itv.long$AUC), ]
-
-  test <- duplicated(itv.long[, c("ID", "idx")])
-
+  
+  cnv.long <- cnv.long[order(cnv.long$ID, cnv.long$grid.id, -cnv.long$AUC), ]
+  
+  test <- duplicated(cnv.long[, c("ID", "grid.id")])
+  
   if (any(test)) {
     warning("One or more samples have more than 1 record for a CNV del/dup event at the same location, kept the highest dosage")
-    itv.long <- itv.long[!test, ]
+    cnv.long <- cnv.long[!test, ]
   }
-
+  
   #spread data as wide table for GLMNET analysis
-  ID_mid <- data.frame("ID" = unique(itv.long$ID))
+  ID_mid <- data.frame("ID" = unique(cnv.long$ID))
   ID_mid$mid <- seq_len(nrow(ID_mid))
-  itv.long <- merge(itv.long, ID_mid, by = "ID", all.x = TRUE)
-
-  itv.long <- itv.long[order(itv.long$idx, itv.long$ID), ]
-
-  Matrix::sparseMatrix(i = itv.long$mid,
-                       j = itv.long$idx, 
-                       x = itv.long$AUC, 
-                       dims = c(max(itv.long$mid), 
-                                max(itv.long$idx)),
+  cnv.long <- merge(cnv.long, ID_mid, by = "ID", all.x = TRUE)
+  
+  cnv.long <- cnv.long[order(cnv.long$grid.id, cnv.long$ID), ]
+  
+  Matrix::sparseMatrix(i = cnv.long$mid,
+                       j = cnv.long$grid.id, 
+                       x = cnv.long$AUC, 
+                       dims = c(max(cnv.long$mid), 
+                                max(cnv.long$grid.id)),
                        dimnames = list(ID_mid$ID,
-                                       seq_len(max(itv.long$idx))))
+                                       seq_len(max(cnv.long$grid.id))))
 }

@@ -19,23 +19,23 @@
 #'
 #' @keywords internal
 .loss <- function(X, Y, beta,  family = c("gaussian", "binomial")) {
-
+  
   # take the first value as default
   family <- match.arg(family)
-
+  
   stopifnot(
     "`X` must be provided" = !missing(X),
     "`Y` must be a numeric vector" = !missing(Y) && 
       is.vector(Y, mode = "numeric") && nrow(X) == length(Y),
     "`beta` vector must be provided" = !missing(beta)
   )
-
+  
   if (family == "gaussian") {
     Y_hat <- .linearPred(X = X, beta = beta)
     loss <- {crossprod(Y_hat - Y) / length(Y)} |> drop()
   } else {
     loss <- .logLH(X = X, beta = beta, Y = Y)
   }
-
+  
   loss
 }

@@ -20,11 +20,11 @@
   )
   
   Y <- .confirmBinary(Y)
-
+  
   if (all(Y == 0L) || all(Y == 1L)) {
     warning("All Y are all equal", call. = FALSE)
   }
-
+  
   linear_pred <- .linearPred(X = X, beta = beta)
   sum(linear_pred * Y - log(1.0 + exp(linear_pred)))
 }

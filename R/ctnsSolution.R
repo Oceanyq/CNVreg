@@ -17,10 +17,10 @@
 .ctnsSolution <- function(data, X.app, Y.app, lambda1) {
   
   stopifnot(
-    "`data` must be a 'WTsth.data' object" = !missing(data) && 
-      inherits(data, "WTsth.data") && !is.null(data$XZ),
+    "`data` must be a 'WTsmth.data' object" = !missing(data) && 
+      inherits(data, "WTsmth.data") && !is.null(data$XZ),
     " `lambda1 must be a scalar numeric" =
-      !missing(lambda1) && .isNumericVector(lambda1, 1L),
+      !missing(lambda1) && .isNumericVector(lambda1, 1L)
   )
   
   intercept_name <- "(Intercept)"
@@ -35,7 +35,7 @@
   
   X_aug <- rbind(Xp1, X.app)
   Y_aug <- c(data$Y, Y.app)
-
+  
   p_fac <- rep(1.0, ncol(X_aug))
   
   # set the first penalty factor as 0, for intercept

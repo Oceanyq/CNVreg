@@ -23,7 +23,7 @@
 #' 
 #' @keywords internal
 .weightMatrix <- function(wide.data, not.rare.idx, freq) {
-
+  
   stopifnot(
     "`wide.data` must be a Matrix" = !missing(wide.data) && 
       inherits(wide.data, "Matrix"),
@@ -35,7 +35,7 @@
   )
   
   CNV_summary <- matrix(nrow = 0L, ncol = 3L)
-
+  
   weight_structure <- Matrix::Matrix(nrow = 0L, ncol = 0L, sparse = TRUE)
   
   weight_options <- matrix(nrow = 6L, ncol = 0L,
@@ -46,7 +46,7 @@
   seq_s <- 1L
   CNVR_id <- 1L
   while (length(not.rare.idx) > 0L) {
-    
+    #print(CNVR_id)
     diffs <- diff(not.rare.idx)
     
     # define a sequence of fragments with ending positions
@@ -65,17 +65,18 @@
       weight_structure <- Matrix::bdiag(weight_structure, 0.0)
       weight_options <- cbind(weight_options, rep(0.0, 6L))
     } else {
-      CNVR_block <- CNVR_block[rowSums(CNVR_block) > 10e-8, ]
+      CNVR_block <- CNVR_block[which(rowSums(CNVR_block) > 10e-8), , drop=FALSE]
       K <- nrow(CNVR_block)
       
-      wgt_matrix <- matrix(nrow = n_frag - 1L, ncol = n_frag)
+      wgt_matrix <- matrix(0.0, nrow = n_frag - 1L, ncol = n_frag)
       
       for (i in seq_len(n_frag - 1L)) {
         term_wcs <- {{CNVR_block[, i] %*% CNVR_block[, i + 1L]} / 
-          sqrt(crossprod(CNVR_block[, i]) * crossprod(CNVR_block[, i + 1L]))} |> 
-          drop()
+            sqrt(crossprod(CNVR_block[, i]) * crossprod(CNVR_block[, i + 1L]))}
+        #|> 
+         # drop()
         term_wif <- 1.0 / sum(CNVR_block[, i] & CNVR_block[, i + 1L])
-
+        
         weight_options <- cbind(weight_options,
                                 c(1.0, K * 1.0, 
                                   term_wcs, K * term_wcs, 
@@ -94,7 +95,7 @@
     
   }
   
-  colnames(CNV_summary) <- c("CNV.id", "idx", "freq")
+  colnames(CNV_summary) <- c("CNV.id", "grid.id", "freq")
   
   # factor of 2 is because there are 2 elements in each row
   norm_nonzero <- rowSums(abs(weight_options) > 1e-12, na.rm = TRUE) * 2.0
@@ -102,6 +103,11 @@
   norm_sum[norm_sum < 1e-8] <- 1.0
   
   weight_options <- weight_options * norm_nonzero / norm_sum
+  weight_options[is.na(weight_options)] <- 0.0
+  
+  if (!any(weight_structure > 0.5)) {
+    stop("weight structure is all zeros", call. = FALSE)
+  }
   
   list("weight.structure" = weight_structure,
        "weight.options" = weight_options,

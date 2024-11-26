@@ -12,6 +12,6 @@
     "`beta` must be a vector with numeric values, beta has intercept"=
       !missing(beta) && .isNumericVector(beta, ncol(X) + 1L)
   )
-
+  
   {beta[1L] + X %*% beta[-1L]} |> as.matrix() |> drop()
 }

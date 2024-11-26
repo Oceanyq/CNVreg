@@ -1,8 +1,91 @@
-.internalStep1 <- function(itv.long, n.samples, rare.out, type) {
+#' @noRd
+#' @param CNV A data.frame in PLINK format. Specifically, must contain
+#' columns: 
+#' \itemize{
+#'   \item "ID": character, unique identity for each sample
+#'   \item "CHR": integer, allowed range 1-22 NOTE: only 1 CHR can be present
+#'   \item "BP1": integer, CNV event starting position
+#'   \item "BP2": integer, CNV event ending position, each record must have 
+#'         BP1 <= BP2, CNV at least 1bp (or other unit length)
+#'   \item "TYPE": integer, range 0, 1, 3, 4, and larger allowed, i.e.,
+#'        2 is not allowed.
+#'   }
+#' @param Z A data.frame. Must include column "ID". All other columns are covariates,
+#'   which can be continuous, binary, or categorical variables. At a minimum, 
+#'   Z must contain all unique CNV$ID values.
+#' @param Y A data.frame. Must include column "ID". Must have 2 columns. For binary,
+#'   values must be 0 (control) or 1 (case). For continuous, values must be 
+#'   real. Y$ID must contain all Z$ID.
+#' 
+#' @returns A list object containing 
+#'   \item{CNV} {ordered by character(ID), BP1}
+#'   \item{Z} {ordered by CNV$ID, order(setdiff(Z$ID, CNV$ID))}
+#'   \item{Y} {ordered by CNV$ID, order(setdiff(Y$ID, CNV$ID))}
+#'   
+#' @importFrom stats model.matrix
+#' @keywords internal
+.orderData <- function(CNV, Z, Y) {
+  
+  stopifnot(
+    "`CNV` must be provided" = !missing(CNV) && .isCNV(CNV),
+    "`Z` must be a data.frame with a column named `ID`" =
+      !missing(Z) && {is.null(Z) ||
+          {is.data.frame(Z) && {"ID" %in% colnames(Z)} &&
+              all(as.character(CNV$ID) %in% as.character(Z$ID))}},
+    "`Y` must be a data.frame with 2 columns" =
+      !missing(Y) && is.data.frame(Y) && {"ID" %in% colnames(Y)} && ncol(Y) == 2L &&
+      {is.null(Z) || 
+          {all(as.character(Y$ID) %in% as.character(Z$ID)) && 
+              all(as.character(Z$ID) %in% as.character(Y$ID))}}
+  )
+  
+  if (is.null(Z)) Z <- data.frame(ID = Y$ID)
+  
+  # convert all IDs to common type
+  CNV$ID <- as.character(CNV$ID)
+  Z$ID <- as.character(Z$ID)
+  Y$ID <- as.character(Y$ID)
+  
+  # order all provided data 
+  CNV <- CNV[order(CNV$ID, CNV$BP1), ]
+  Z <- Z[order(Z$ID), , drop = FALSE]
+  Y <- Y[order(Y$ID), ]
+  
+  # align Z and Y such that the top elements are in the same order as CNV
+  IDs <- c(intersect(Z$ID, CNV$ID), setdiff(Z$ID, CNV$ID))
+  idx <- match(IDs, Z$ID)
+  Z <- Z[idx, , drop = FALSE]
+  Y <- Y[idx, ]
+  
+  # remove ID columns from Z and Y and convert to data matrices with IDs
+  # as rownames
+  Z$ID <- NULL
+  Y$ID <- NULL
+  if (ncol(Z) > 0L) {
+    Z <- stats::model.matrix(~., Z)[, -1L, drop=FALSE]
+    rownames(Z) <- IDs
+  } else {
+    Z <- matrix(NA, nrow = nrow(Z), ncol = 0L,
+                dimnames = list(IDs, NULL))
+  }
+  Y <- data.matrix(Y)
+  rownames(Y) <- IDs
+  
+  list("CNV" = CNV, "Z" = Z, "Y" = Y)
+  
+}
+
+#' @noRd
+#' @param cnv.long CNV data converted to long format
+#' @param n.samples Number of samples in dataset
+#' @param rare.out Allowed range for rare events
+#' @param type The type of CNV event (del/dup)
+
+.internalStep1 <- function(cnv.long, n.samples, rare.out, type) {
   
   # A sparseMatrix of dimension n x n_fragments, where n is the number
   # of unique participant IDs of the del/dup type
-  wide_raw_sum <- .wideDataRaw(itv.long = itv.long)
+  wide_raw_sum <- .wideDataRaw(cnv.long = cnv.long)
   
   freqs <- .wideFrequency(wide.raw = wide_raw_sum, 
                           sample.size = n.samples, 
@@ -58,7 +141,7 @@
 #' @param Y A data.frame. Must include column "ID". Must have 2 columns. For binary,
 #'   values must be 0 (control) or 1 (case). For continuous, values must be 
 #'   real. Y$ID must contain all Z$ID.
-#' @param  rare.out  A scalar numeric in (0, 0.5) event rates below which are
+#' @param  rare.out  A scalar numeric in (0, 0.5); event rates below this value are
 #'   filtered out of the data.
 #'
 #' @returns An S3 object of class "WTsmth.data" extending a list object containing
@@ -82,86 +165,67 @@
 #' @import Matrix
 #'
 #' @keywords internal
-prep <- function(CNV, Z, Y, rare.out = 0.05) {
+prep <- function(CNV, Y, Z = NULL, rare.out = 0.05) {
   
   # QUESTION: can Z be empty -- i.e., no covariates used?
   
   stopifnot(
-    "`CNV` must be provided" = !missing(CNV) && .isCNV(CNV),
-    "`Z` must be a data.frame with a column named `ID`" =
-      !missing(Z) && is.data.frame(Z) && {"ID" %in% colnames(Z)} &&
-      all(CNV$ID %in% Z$ID),
-    "`Y` must be a data.frame with 2 columns" =
-      !missing(Y) && is.data.frame(Y) && {"ID" %in% colnames(Y)} &&
-      all(Y$ID %in% Z$ID) && all(Z$ID %in% Y$ID) && ncol(Y) == 2L,
-    "`rare.out` is a number in (0, 0.5)" = !missing(rare.out) && 
-      is.vector(rare.out, "numeric") && length(rare.out) == 1L &&
-      rare.out > 0.0 && rare.out < 0.5
+    "`CNV` must be provided" = !missing(CNV),
+    "`Z` must be NULL or a data.frame" = is.null(Z) || is.data.frame(Z),
+    "`Y` must be provided" = !missing(Y),
+    "`rare.out` is a number in (0, 0.5)" = is.vector(rare.out, "numeric") && 
+      length(rare.out) == 1L && rare.out > 0.0 && rare.out < 0.5
   )
   
-  # order all provided data using common logic
-  CNV <- CNV[order(CNV$ID, CNV$BP1), ]
-  Z <- Z[order(Z$ID), ]
-  Y <- Y[order(Y$ID), ]
+  # order data object to common structure
+  ordered_data <- .orderData(CNV = CNV, Z = Z, Y = Y)
   
-  # align Z and Y such that the top elements are in the same order as CNV
-  IDs <- c(intersect(Z$ID, CNV$ID), setdiff(Z$ID, CNV$ID))
-  idx <- match(IDs, Z$ID)
-  Z <- Z[idx, ]
-  Y <- Y[idx, ]
+  # number of samples in the data
+  n_samples <- nrow(ordered_data$Z)
   
-  # remove ID columns from Z and Y and convert to data matrices with IDs
-  # as rownames
-  Z$ID <- NULL
-  Y$ID <- NULL
-  Z <- data.matrix(Z)
-  rownames(Z) <- IDs
-  Y <- data.matrix(Y)
-  rownames(Y) <- IDs
+  wide_deldup <- Matrix::Matrix(seq_len(n_samples), 
+                                ncol  = 1L,
+                                sparse = TRUE,
+                                dimnames = list(rownames(ordered_data$Y), "mid"))
   
-  n_samples <- length(IDs)
-  
-  out_wide_deldup <- Matrix::Matrix(seq_len(n_samples), 
-                                    ncol  = 1L,
-                                    sparse = TRUE,
-                                    dimnames = list(IDs, "mid"))
-  
+  # weight definitions
   weight_any <- matrix(0.0, nrow = 0L, ncol = 0L)
   weight_options <- matrix(0.0, nrow = 6L, ncol = 0L,
                            dimnames = list(c("eql", "keql", 
                                              "wcs", "kwcs", 
                                              "wif", "kwif"), NULL))
+  
+  # CNV
   CNVRinfo = matrix(nrow = 0L, ncol = 0L)
   
-  itv_data <- .breakCNV(CNV)
+  cnv_long_form <- .breakCNV(ordered_data$CNV)
   
-  itv_long <- itv_data$CNV_frag_l
-  itv_info <- itv_data$ITV_info
-
+  cnv_long <- cnv_long_form$long.cnv
+  grid_info <- cnv_long_form$grid.info
+  
   for (deldup_i in c("del", "dup")) {
     
-    tst <- itv_long$deldup == deldup_i
-
+    tst <- cnv_long$deldup == deldup_i
+    
     if (!any(tst)) next
     
-    res <- .internalStep1(itv_long[tst, ], n.samples = n_samples, 
+    res <- .internalStep1(cnv_long[tst, ], n.samples = n_samples, 
                           rare.out = rare.out, type = deldup_i)
     
-    out_wide_deldup <- .mergeMatrices(out_wide_deldup, res$wide.data)
+    wide_deldup <- .mergeMatrices(wide_deldup, res$wide.data)
     weight_options <- cbind(weight_options, res$weight.options)
     weight_any <- bdiag(weight_any, res$weight.structure)
-    
-    CNVR_ITV <- merge(res$CNVR.summary, itv_info, by = "idx", all.x = TRUE)
+    CNVR_ITV <- merge(res$CNVR.summary, grid_info, by = "grid.id", all.x = TRUE)
     CNVR_ITV$deldup <- deldup_i
     CNVRinfo <- rbind(CNVRinfo, CNVR_ITV)
     
   }
   
-  out_wide_deldup <- out_wide_deldup[ , colnames(out_wide_deldup) != "mid"]
+  wide_deldup <- wide_deldup[ , colnames(wide_deldup) != "mid"]
   
-  res <- list("design" = out_wide_deldup,
-              "Z" = as(Z, "sparseMatrix"),
-              "Y" = Y,
+  res <- list("design" = wide_deldup,
+              "Z" = Matrix::Matrix(ordered_data$Z, sparse = TRUE),
+              "Y" = ordered_data$Y,
               "weight.structure" = weight_any,
               "weight.options" = weight_options,
               "CNVR.info" = CNVRinfo)
