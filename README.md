@@ -2,10 +2,9 @@
 
 ### The CNVreg framework 
 
-```{r echo=FALSE, fig.align='center', out.width='80%', fig.cap = "Figure 1. Graphical abstract: Summary of CNVreg framework. Refer to the publication DOI:XXXXXXX"}
-knitr::include_graphics('./ga_consistent.png')
+include_graphics('./ga_consistent.png')
 
-```
+
 
 Figure 1.a. The CNV profile curve, denoted as $D_i(s)$, represents the CNV events of individual $i$ across a genomic region. CNV "fragments", one commonly used CNV locus definition, can be defined based on the breakpoints observed. 
 
