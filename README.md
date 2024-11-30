@@ -2,7 +2,7 @@
 
 ### The CNVreg framework 
 
-include_graphics('./ga_consistent.png')
+![Figure 1. Graphical abstract: Summary of CNVreg framework. Refer to the publication]('./ga_consistent.png')
 
 
 
