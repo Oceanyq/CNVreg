@@ -25,7 +25,7 @@ To control model complexity and leverage CNV fragment structural information in 
 
 The *CNVreg* package solves a generalized linear model with dual penalties (Lasso for variable selection and weighted fusion for effect smoothness of the adjacent CNV fragments) for a continuous outcome or a binary outcome. We define the design matrix for CNV profile of duplications and deletions as $X_{n \times L^*}\equiv (X^{+}, X^{-})$, where CNV predictor $\left(X\right)$ is the product of CNV dosage and fragment length, $X^{+}$ represents the duplication CNV fragments, and $X^{-}$ represents the deletion CNV fragments. The package solves the problem:
 
-\begin{equation}
+```math
     \hat{\theta}  = \underset{\theta}{\operatorname{argmin}} \left\{ l(Y, X\beta+Z\gamma) 
         + \lambda_1 \left\|\begin{matrix}
         \beta\\
@@ -36,10 +36,10 @@ The *CNVreg* package solves a generalized linear model with dual penalties (Lass
     %  \left\| A^{+} \beta^{+} \right\|_2^2 
     %+ \left\| A^{-} \beta^{-} \right\|_2^2 \right]
   \label{eql glmnet}
-\end{equation} 
+```
  
 In the above model, $l(Y, X\beta+Z\gamma)$ is the negative log-likelihood objective function with an outcome trait Y, CNV predictor X, and other covariates Z (e.g. age, sex). For a continuous outcome, the equation $l(Y, X\beta+Z\gamma)$ is the residual sum of squares. Then $\theta$ can be obtained by solving the Lasso-type of problem for a continuous trait
-\begin{equation}
+```
     \widehat{\theta}_{_{CT}}  = \underset{\theta}{\operatorname{argmin}} \left\{\left\| \left(\begin{matrix}Y\\0\\\end{matrix}\right) - \left(\begin{matrix}X&Z\\\sqrt{\lambda_2}A&0\\\end{matrix}\right)
     \left( \begin{matrix}
         \beta\\     \gamma
@@ -49,7 +49,7 @@ In the above model, $l(Y, X\beta+Z\gamma)$ is the negative log-likelihood object
         \gamma
      \end{matrix} \right\|_1\right\}.
   \label{supeql ctns}
-\end{equation} For a binary outcome, we apply quadratic approximation of the log-likelihood function using the Taylor's expansion at each iteration (m) and perform iteratively re-weighted least square to solve the equation. Specifically, at the $m_{th}$ step, define 
+```For a binary outcome, we apply quadratic approximation of the log-likelihood function using the Taylor's expansion at each iteration (m) and perform iteratively re-weighted least square to solve the equation. Specifically, at the $m_{th}$ step, define 
 \[\widehat{\pi}_i^{(m)} = \left\{ 1+\exp[-(X_i\widehat{\beta}^{(m)} + Z_i\widehat{\gamma}_i^{(m)})]\right\}^{-1}
   ,\] 
 the working response ${u}^{(m)}\equiv [{u}_1^{(m)},\cdots, {u}_n^{(m)}]^{\top}$ where 
@@ -63,7 +63,7 @@ the working response ${u}^{(m)}\equiv [{u}_1^{(m)},\cdots, {u}_n^{(m)}]^{\top}$ 
 Then in the $(m+1)$th iteration, we set 
 ${Y^\ast}^{(m)}=\left(\begin{matrix}\Omega^{(m)} u^{(m)}\\0\\\end{matrix}\right)$ and
 $\left(\begin{matrix}{X^\ast}^{(m)} & {Z^\ast}^{(m)}\\\end{matrix}\right)=\left(\begin{matrix}\Omega^{(m)} X&\Omega^{(m)} Z\\\sqrt{\lambda_2}A&0\\\end{matrix}\right)$. We can update $\theta$ by solving 
-\begin{equation}
+```
 {\widehat{\theta}_{_{BT}}}^{{(m+1)}}  = \underset{\theta}{\operatorname{argmin}} \left\{\left\| \left(\begin{matrix}{\Omega}^{(m)} {u}^{(m)}\\0\\\end{matrix}\right) - \left(\begin{matrix}{\Omega}^{(m)} X& {\Omega}^{(m)} Z\\\sqrt{\lambda_2}A&0\\\end{matrix}\right)
   \left( \begin{matrix}
          \beta\\     \gamma
@@ -73,12 +73,12 @@ $\left(\begin{matrix}{X^\ast}^{(m)} & {Z^\ast}^{(m)}\\\end{matrix}\right)=\left(
   \gamma
   \end{matrix} \right\|_1\right\}.
 \label{supeql bnry}
-\end{equation} 
+```
 
 To conclude, the parameter $\theta$ for either a continuous or a binary outcome can be solved by a Lasso regression using existing software such as R package *glmnet*.      
 
 The tuning parameters $\lambda_1$ and $\lambda_2$ control the level of penalization for sparsity ($\lambda_1$) and smoothness ($\lambda_2$). The tuning parameter $\lambda_1$ controls the $L_1$ Lasso penalty. 
-\begin{equation}
+```
 \left \| \begin{matrix}
 \beta \\
 \gamma
