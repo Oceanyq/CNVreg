@@ -2,7 +2,7 @@
 
 ### The CNVreg framework 
 
-![Figure 1. Graphical abstract: Summary of CNVreg framework.]('https://github.com/Oceanyq/CNVreg/blob/main/ga_consistent.png?raw=true')
+![Figure 1. Graphical abstract: Summary of CNVreg framework.](https://github.com/Oceanyq/CNVreg/blob/main/ga_consistent.png?raw=true)
 
 
 
