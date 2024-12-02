@@ -14,7 +14,7 @@ Y <- data.frame("ID" = seq(20, 1, by = -1),
                 "Y" = withr::with_seed(3456, rnorm(20)))
 
 test_that("`.combineXZ()` returns expected errors", {
-  data <- prep(cnv, Z, Y, rare.out = 0.03)
+  data <- prep(cnv, Y, Z, rare.out = 0.03)
 
   XZ <- Matrix::Matrix(0.0, 
                        nrow = 20L, 
@@ -31,7 +31,7 @@ test_that("`.combineXZ()` returns expected errors", {
 
 
 test_that("`.combineXZ()` returns expected errors", {
-  data <- prep(cnv, Z, Y, rare.out = 0.03)
+  data <- prep(cnv, Y, Z, rare.out = 0.03)
   XZ <- Matrix::Matrix(0.0, 
                        nrow = nrow(Z), 
                        ncol = 4L + ncol(data$design), 
@@ -47,7 +47,7 @@ test_that("`.combineXZ()` returns expected errors", {
 
 
 test_that("`.createA()` returns expected errors", {
-  data <- prep(cnv, Z, Y, rare.out = 0.03)
+  data <- prep(cnv, Y, Z, rare.out = 0.03)
   data$XZ <- .combineXZ(data)
   
   expect_error(.createA(unclass(data)),
@@ -62,7 +62,7 @@ test_that("`.createA()` returns expected errors", {
 
 test_that("`.createA()` returns expected results", {
   
-  data <- prep(cnv, Z, Y, rare.out = 1e-8)
+  data <- prep(cnv, Y, Z, rare.out = 1e-8)
   data$XZ <- .combineXZ(data)
   
   A <- data$weight.options[1L, ] * data$weight.structure
@@ -82,7 +82,7 @@ test_that("`.expandWTsmth()` returns expected errors", {
   expect_error(.expandWTsmth(), 
                "`data` must be a WTsmth.data object")
   
-  data <- prep(cnv, Z, Y, rare.out = 1e-8)
+  data <- prep(cnv, Y, Z, rare.out = 1e-8)
   
   expect_error(.expandWTsmth(unclass(data)), 
                "`data` must be a WTsmth.data object")
@@ -103,7 +103,7 @@ test_that("`.expandWTsmth()` returns expected errors", {
 
 test_that("`.expandWTsmth()` returns expected results", {
   
-  data <- prep(cnv, Z, Y, rare.out = 1e-8)
+  data <- prep(cnv, Y, Z, rare.out = 1e-8)
   data$XZ <- .combineXZ(data)
   data$A <- .createA(data, "keql")
 

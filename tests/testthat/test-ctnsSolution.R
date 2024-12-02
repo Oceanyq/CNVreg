@@ -16,12 +16,12 @@ test_that("`.ctnsSolution()` returns expected errors", {
   
   # trigger missing by not passing an input
   expect_error(.ctnsSolution(),
-               "`data` must be a 'WTsth.data' object")
+               "`data` must be a 'WTsmth.data' object")
   
   cnv <- data.frame("ID" = 11L:20L,
                     "CHR" = rep(22L, 10L),
                     "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(2L, 20L, 2L),
+                    "BP2" = seq(3L, 22L, 2L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -31,7 +31,7 @@ test_that("`.ctnsSolution()` returns expected errors", {
   
   Y <- data.frame("ID" = seq(20, 1, by = -1), 
                   "Y" = withr::with_seed(3456, rnorm(20)))
-  data <- prep(cnv, Z, Y, rare.out = 0.03)  
+  data <- prep(cnv, Y, Z, rare.out = 0.03)  
   
 })
 

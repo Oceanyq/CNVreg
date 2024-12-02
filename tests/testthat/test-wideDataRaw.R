@@ -1,26 +1,26 @@
 test_that("`.wideDataRaw()` returns expected errors", {
   
   expect_error(.wideDataRaw(),
-               "`itv.long` data.frame is missing or not appropriately defined")
+               "`cnv.long` data.frame is missing or not appropriately defined")
   
   expect_error(.wideDataRaw(list("ID" = c(1L : 5L),
                                  "CHR" = rep(22L, 5L),
-                                 "idx" = 1:5,
+                                 "grid.id" = 1:5,
                                  "TYPE" = c(0L, 1L, 0L, 0L, 0L),
                                  "deldup" = 1:5,
                                  "AUC" = 1:5)),
-               "`itv.long` data.frame is missing or not appropriately defined")
+               "`cnv.long` data.frame is missing or not appropriately defined")
   
   expect_error(.wideDataRaw(data.frame("ID" = c(1L : 5L),
                                        "CHR" = rep(22L, 5L),
                                        "TYPE" = c(0L, 1L, 0L, 0L, 0L),
                                        "deldup" = 1:5,
                                        "AUC" = 1:5)),
-               "`itv.long` data.frame is missing or not appropriately defined")
+               "`cnv.long` data.frame is missing or not appropriately defined")
   
   expect_warning(.wideDataRaw(data.frame("ID" = c(1L, 1L:4L),
                                          "CHR" = rep(22L, 5L),
-                                         "idx" = c(1, 1:4),
+                                         "grid.id" = c(1, 1:4),
                                          "TYPE" = c(0L, 1L, 0L, 0L, 0L),
                                          "deldup" = 1:5,
                                          "AUC" = 1:5)),
@@ -46,6 +46,6 @@ test_that("`.wideDataRaw()` returns expected results; test 1", {
                         ncol = 6L, nrow = 4L, byrow = TRUE, 
                         dimnames = list(1L:4L, 1L:6L) ), "sparseMatrix")
   
-  expect_equal(.wideDataRaw(itv_data$CNV_frag_l), expected)
+  expect_equal(.wideDataRaw(itv_data$long.cnv), expected)
 })
 

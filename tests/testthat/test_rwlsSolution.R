@@ -13,7 +13,7 @@ Z <- data.frame("ID" = seq(20, 1, by = -1),
 Y <- data.frame("ID" = seq(20, 1, by = -1), 
                 "Y" = withr::with_seed(3456, rbinom(20, 1, 0.4)))
 
-data <- prep(cnv, Z, Y, rare.out = 0.03)
+data <- prep(cnv, Y, Z, rare.out = 0.03)
 data$weight.options[] <- withr::with_seed(3245, rnorm(length(data$weight.options)))
 
 test_that("`rwlsSolution()` returns expected errors", {

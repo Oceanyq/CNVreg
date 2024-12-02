@@ -45,7 +45,7 @@ test_that("`.weightMatrix()` returns expected results; test 1", {
                    "weight.options" = weight_options,
     "CNVR.summary"= matrix(c(1,2,2,
                           2,4,2,
-                          2,5,2), ncol=3, nrow=3, byrow=TRUE, dimnames = list(NULL, c("CNV.id", "idx", "freq")))
+                          2,5,2), ncol=3, nrow=3, byrow=TRUE, dimnames = list(NULL, c("CNV.id", "grid.id", "freq")))
     
   )
   
