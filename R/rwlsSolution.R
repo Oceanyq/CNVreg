@@ -25,15 +25,13 @@
   
   stopifnot(
     "`data` must be a 'WTsth.data' object" = !missing(data) && 
-      inherits(data, "WTsmth.data") && !is.null(data$XZ),
+      inherits(data, "WTsmth.data") && !is.null(data$XZ_update),
     "`lambda1 must be a scalar numeric" =
       !missing(lambda1) && .isNumericVector(lambda1, 1L),
     "`iter.control` must be a list; allowed elements are max.iter, tol.beta, and tol.loss" = 
       .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
   
-  ZN = nrow(data$XZ)
-  Xp = ncol(data$XZ)
   
   ##initial beta values, default type.measure="deviance"
   fit_yb_init <- tryCatch(glmnet::glmnet(x = data$XZ, y = data$Y, family = "binomial"),
@@ -70,15 +68,19 @@
     
     sqrt_v <- sqrt(prob_pred * {1.0 - prob_pred})
     
-    X_update <- cbind(1.0, data$XZ) * sqrt_v
-    X_aug <- rbind(X_update, X.app)
     
-    ## update Y_augmented
-    y_update <- u * sqrt_v
-    names(y_update) = rownames(data$XZ)
-    Y_aug <- c(y_update, Y.app)
+    #update all predictors include the intercept
+    data$XZ_update <- cbind(1.0, data$XZ) * sqrt_v
+    #augmentation in .ctnssolution
+    #X_aug <- rbind(X_update, X.app)
     
-    beta_next <- .ctnsSolution(data = data, X.app = X_aug, Y.app = Y_aug, lambda1 = lambda1)
+     ## prepare to update Y_update
+    data$Y_update <- u * sqrt_v
+    names(data$Y_update) = rownames(data$XZ_update)
+    #augmentation in .ctnssolution
+    #Y_aug <- c(y_update, Y.app)
+    
+    beta_next <- .ctnsSolution(data = data, X.app = X.app, Y.app = Y.app, lambda1 = lambda1)
     
     # stop criteria  beta
     beta_dif <- abs(beta_next - beta_cur)

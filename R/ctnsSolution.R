@@ -23,25 +23,17 @@
       !missing(lambda1) && .isNumericVector(lambda1, 1L)
   )
   
-  intercept_name <- "(Intercept)"
-  while (intercept_name %in% colnames(data$XZ)) {
-    intercept_name <- sample(LETTERS, 10, TRUE)
-  }
-  XZ_colnames <- c(intercept_name, colnames(data$XZ))
+
+  XZ_aug <- rbind(data$XZ_update, X.app)
+  Y_aug <- c(data$Y_update, Y.app)
+
   
-  # continuous outcomes
-  Xp1 <- cbind(1.0, data$XZ)
-  colnames(Xp1) <- XZ_colnames
-  
-  X_aug <- rbind(Xp1, X.app)
-  Y_aug <- c(data$Y, Y.app)
-  
-  p_fac <- rep(1.0, ncol(X_aug))
+  p_fac <- rep(1.0, ncol(XZ_aug))
   
   # set the first penalty factor as 0, for intercept
   p_fac[1L] <- 0
   
-  fit_tr <- tryCatch(glmnet::glmnet(x = X_aug, y = Y_aug, intercept = FALSE, 
+  fit_tr <- tryCatch(glmnet::glmnet(x = XZ_aug, y = Y_aug, intercept = FALSE, 
                                     penalty.factor = p_fac),
                      error = function(e){
                        stop("glmnet encountered errors\n\t", call. = FALSE, e$message)

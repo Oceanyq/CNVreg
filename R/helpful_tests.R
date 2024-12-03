@@ -92,13 +92,15 @@
     stop("`CNV$CHR` must take a single value in [1, 22]", call. = FALSE)
   }
   
-  if (!is.vector(CNV$BP1, mode = "numeric") || !all(CNV$BP1 >= 0L) ||
-      !isTRUE(all.equal(CNV$BP1, round(CNV$BP1)))) {
+  if (!is.vector(CNV$BP1, mode = "numeric") || !all(CNV$BP1 >= 0L)) {
+      #||
+      #!isTRUE(all.equal(CNV$BP1, round(CNV$BP1)))) {
     stop("`CNV$BP1 must contain non-negative integers", call. = FALSE)
   }
   
-  if (!is.vector(CNV$BP2, mode = "numeric") || !all(CNV$BP2 >= 0L) ||
-      !isTRUE(all.equal(CNV$BP2, round(CNV$BP2)))) {
+  if (!is.vector(CNV$BP2, mode = "numeric") || !all(CNV$BP2 >= 0L)){
+      #||
+      #!isTRUE(all.equal(CNV$BP2, round(CNV$BP2)))) {
     stop("`CNV$BP2 must contain non-negative integers", call. = FALSE)
   }
   
@@ -110,6 +112,17 @@
       !all(CNV$TYPE %in% c(0L, 1L, 3L:9999L)) ||
       sum(CNV$TYPE == 2L) != 0L) {
     stop("`CNV$Type` must be integer in [0, 1, 3, ..., 9999]", call. = FALSE)
+  }
+
+  if (!isTRUE(all.equal(CNV$BP1, round(CNV$BP1)))) {
+    warning("Non-integer CNV break points exit in BP1")
+  }
+  
+  if (!isTRUE(all.equal(CNV$BP2, round(CNV$BP2)))) {
+    warning("Non-integer CNV break points exit in BP2")
+  }
+  if (any(CNV$BP2 - CNV$BP1 < 50)) {
+    warning(" There are CNV events with length <50bp, double check the data or units of data")
   }
   
   TRUE

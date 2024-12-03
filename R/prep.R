@@ -33,7 +33,7 @@
           {is.data.frame(Z) && {"ID" %in% colnames(Z)} &&
               all(as.character(CNV$ID) %in% as.character(Z$ID))}},
     "`Y` must be a data.frame with 2 columns" =
-      !missing(Y) && is.data.frame(Y) && {"ID" %in% colnames(Y)} && ncol(Y) == 2L &&
+      !missing(Y) && is.data.frame(Y) && {"ID" %in% colnames(Y)} && ncol(Y) >= 2L &&
       {is.null(Z) || 
           {all(as.character(Y$ID) %in% as.character(Z$ID)) && 
               all(as.character(Z$ID) %in% as.character(Y$ID))}}

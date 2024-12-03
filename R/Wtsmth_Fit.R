@@ -55,10 +55,10 @@ fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
       .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
   
+
+  
   iter.control <- .testIterControl(iter.control)  
   
-  if (family == "binomial") data$Y <- .confirmBinary(data$Y)
-  if (family == "gaussian") data$Y <- .confirmContinuous(data$Y)
   
   if (is.null(data$XZ)) {
     if (is.null(weight)) stop("`weight` must be provided", call. = FALSE)
@@ -67,22 +67,83 @@ fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
     if (!is.null(weight)) warning("`weight` input ignored; data already expanded", call. = FALSE)
   }
   
-  if (!is.null(extras$subset)) {
-    data$Y <- data$Y[extras$subset]
-    data$XZ <- data$XZ[extras$subset, , drop = FALSE]
+ 
+  if(family == "binomial") {
+    data$Y <- .confirmBinary(data$Y)
+    #subset for CV
+  }
+  if (family == "gaussian") {
+    data$Y <- .confirmContinuous(data$Y)
   }
   
-  X_app <- cbind(0.0, sqrt(2.0^lambda2) * data$A)
-  rownames(X_app) <- rownames(data$A)
+  ##for updating iteratively -- mainly useful in binory outcomes
+  data$XZ_update <- data$XZ
+  data$Y_update <- data$Y
+  
+  ## for crossvalidation
+  if (!is.null(extras$subset)) {
+    data$Y_update <- data$Y[extras$subset]
+    data$XZ_update <- data$XZ[extras$subset, , drop = FALSE]
+  }
+  
+  
+  intercept_name <- "(Intercept)"
+  while (intercept_name %in% colnames(data$XZ)) {
+    intercept_name <- sample(LETTERS, 10, TRUE)
+  }
+  XZ_colnames <- c(intercept_name, colnames(data$XZ))
+  
+  
   Y_app <- rep.int(0L, nrow(data$A))
   names(Y_app) <- rownames(data$A)
   
   if (family == "gaussian") {
-    .ctnsSolution(data = data, X.app = X_app, Y.app = Y_app, lambda1 = lambda1)
+    
+    # Update XZp1 and send to data$XZ
+    data$XZ_update <- cbind(1.0, data$XZ_update)
+    colnames(data$XZ_update) <- XZ_colnames
+    
+    # Update XZ_app
+    XZ_app <- cbind(0.0, sqrt(2.0^lambda2) * data$A)
+    rownames(XZ_app) <- rownames(data$A)
+    
+    
+    b_coef = .ctnsSolution(data = data, X.app = XZ_app, Y.app = Y_app, lambda1 = lambda1)
   } else {
-    .rwlsSolution(data = data,
-                  X.app = X_app, Y.app = Y_app, 
+    
+    XN = nrow(data$XZ)
+    AN = nrow(data$A)
+    XZ_app <- cbind(0.0, sqrt(2*(XN+AN)*(2^(lambda2))) * data$A)
+    #dim(XZ_app)
+    rownames(XZ_app) <- rownames(data$A)
+    
+    b_coef = .rwlsSolution(data = data,
+                  X.app = XZ_app, Y.app = Y_app, 
                   lambda1 = lambda1,
                   iter.control = iter.control)
   }
+ # data = data; X.app = XZ_app; Y.app = Y_app;  lambda1 = lambda1; iter.control = iter.control
+  b_intercept <- c("(Intercept)", "", "", "", "",  b_coef[1])
+  
+  b_cnv <- data.frame(Vnames = names(b_coef[-1]),
+                       coef= b_coef[-1])
+  cnvr_info <- data$CNVR.info
+  cnvr_info$Vnames <- paste0(cnvr_info$deldup, cnvr_info$grid.id)
+  b_cnv <- merge(cnvr_info[ ,c("Vnames", "CHR", "lower.boundary", "upper.boundary", "deldup")],
+                 b_cnv, by = "Vnames")
+  b_cnv <- b_cnv[order(b_cnv$deldup, b_cnv$lower.boundary),]
+  
+  b_x <- cbind(names(b_coef[(1+ncol(data$design)+1):(1+ncol(data$design)+ncol(data$Z))]), matrix("", nrow=ncol(data$Z), ncol=4), b_coef[(1+ncol(data$design)+1):(1+ncol(data$design)+ncol(data$Z))])
+  colnames(b_x) <- c("Vnames", "CHR", "lower.boundary", "upper.boundary", "deldup", "coef")
+  
+  b_cnv <- rbind(b_intercept, b_cnv, b_x)
+  
+  b_cnv <- data.frame("Vnames" = b_cnv$Vnames , 
+                      "CHR" = b_cnv$CHR |> as.integer(),
+                      "lower.boundary" = b_cnv$lower.boundary |> as.numeric(),
+                      "upper.boundary" = b_cnv$upper.boundary |> as.numeric(),
+                      "deldup" = b_cnv$deldup ,
+                      "coef" = b_cnv$coef |> as.numeric())
+  
+
 }

@@ -67,21 +67,30 @@ cvfit_WTSMTH <- function(data, lambda1, lambda2, weight,
       .isNamedList(iter.control, c("max.iter", "tol.beta", "tol.loss"))
   )
   
+  if (family == "binomial")  data$Y <- .confirmBinary(data$Y)
+  if (family == "gaussian") data$Y <- .confirmContinuous(data$Y)
+  
   iter.control <- .testIterControl(iter.control)  
   cv.control <- .testCVControl(cv.control, family)
   
-  if (family == "binomial") data$Y <- .confirmBinary(data$Y)
-  if (family == "gaussian") data$Y <- .confirmContinuous(data$Y)
   
   CNV_info <- data$CNVR.info
+ #%%%%%%%%%%%%%%%%%%% 
+  if (is.null(data$XZ)) {
+    if (is.null(weight)) stop("`weight` must be provided", call. = FALSE)
+    data <- .expandWTsmth(data, weight = weight)
+  } else {
+    if (!is.null(weight)) warning("`weight` input ignored; data already expanded", call. = FALSE)
+  }
   
-  data <- .expandWTsmth(data, weight = weight)
   
+
+
   # evaluate loss for all candidates lmd1 + lmd2
   #####################K-fold cross-validation#############
   
   # nfold split (stratified if indicated)
-  tr <- .nfoldSplit(Y = drop(data$Y), unique(rownames(data$X)), cv.control = cv.control)
+  tr <- .nfoldSplit(Y = drop(data$Y), unique(rownames(data$XZ)), cv.control = cv.control)
   
   loss_matrix <- matrix(0.0, nrow = length(lambda1), ncol = length(lambda2))
   
@@ -101,7 +110,9 @@ cvfit_WTSMTH <- function(data, lambda1, lambda2, weight,
   loss_list <- foreach::foreach(i = seq_len(nrow(idx)), 
                                # .packages = c("WTSMTH"),
                                 .combine = "rbind") %dopar% {
-                                  
+                                  track_i <- c(idx[i, 1L], lambda1[idx[i, 2L]], lambda2[idx[i, 3L]])
+                                  names(track_i) <- c("fold", "lambda1", "lambda2")
+                                  print(track_i)
                                   subset <- tr != idx[i, 1L]
                                   
                                   #fit model
@@ -116,10 +127,10 @@ cvfit_WTSMTH <- function(data, lambda1, lambda2, weight,
                                   # for continuous this will be a vector(n); for binary it will be scalar
                                   loss <- .loss(X = data$XZ[!subset, ], 
                                                 Y = data$Y[!subset], 
-                                                beta = beta_lmd21, 
+                                                beta = beta_lmd21$coef, 
                                                 family = family)
                                 }
-  
+# X = data$XZ[!subset, ];  Y = data$Y[!subset]; beta = beta_lmd21$coef;  family = family
   idx_loss <- cbind(idx_loss, loss_list) |> data.frame()
   colnames(idx_loss) <- c("fold", "lambda1", "lambda2", "loss")
   
