@@ -13,7 +13,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      Third,  it prepares the data format of CNV, covariates(`Z`), and outcome(`Y`) for further regression analysis.
      
-  The inputs of `prep()` function take 4 parameters: `CNV`, `Y`, `Z`, and `rare.out`. 
+  The `prep()` function has 4 inputs: `CNV`, `Y`, `Z`, and `rare.out`. 
   
      `CNV` is a PLINK format text file that containes CNV events within a genome region. The CNVs are required to be processed one chromosome at a time.
      
@@ -47,9 +47,9 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 
 
-#### 2. The association analysis with cross-validation to fine-tune parameters for penalized regression models: `cvfit_WTSMTH()`
+#### 2. The association analysis with cross-validation (CV) to fine-tune parameters for penalized regression models: `cvfit_WTSMTH()`
 
-  The penalty terms and the tuning parameters in the association analysis. 
+  ###### 2.1 The penalty terms and the tuning parameters in the association analysis. 
   
    The `cvfit_WTSMTH()` uses a generalized linear model with 2 penalty terms to perform the assiciation analysis. The strength of the penalization is controled by a tuning parameter for each penalty terms.   
 
@@ -67,7 +67,39 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
       When λ2 approaches 0, the model reduces to a Lasso regression.
        
    The penalized regresssion model allows the CNV profile regression to estimate association effects, select trait-associated fragments, and smooth effect sizes for adjacent CNV fragments simultaneously.
+   
+   ###### 2.2 The n-fold cross-validation to fine-tune parameters $\lambda_{1}$ and $\lambda_{2}$
 
+   We use an n-fold CV and grid search strategy to select the optimal tuning parameter values from candidate $\lambda_{1}$ and $\lambda_{2}$ values. The best pair of tuning parameters that minimizes the average validation loss in the n-fold CV is used to determine the final estimate of coefficients. 
+
+   ###### 2.3  Inputs and outputs of `cvfit_WTSMTH()`
+   
+  The `cvfit_WTSMTH()` function has 7 inputs.
+      
+     `data` is a list object produced from the `prep()` function
+        
+     `lambda1` and `lambda2` are the two vectors of candidate tuning tuning parameters for the Lasso penalty and the weighted fusion penalty. The n-fold CV would select the optimal parameters from these candidates. During the implementation, we transforms the two values as $2^{8}$ where * represents each element of the two vectors.
+        
+    `family` must choose from "gaussian"/"binomial", which indicates a continuous/binary outcome.
+
+    `cv.control` has its default values. It controls the cross validation procedure with a few variables: 
+             The number of folds (`nfolds`) used in cross-validation. A default value is 5. It can be chosen to have other number of folds (such as 3, 10) depending on the sample size, time and resource limitation.
+             
+             The number of cores (`ncores`) for parallel computing. check available computation resource before choosing.
+             
+             And, if the random data splits should be stratified (`stratified`) to make the number of cases and the controls to be compatible in each fold, which is necessary for a binary outcome with a rare category. if `stratified` = TRUE and `family` = "binomial", the folds will be stratified within each category of Y. This option is recommended if the sample size of different categories of the outcome is unbalanced.)
+
+    `iter.control is specificly used for a binary outcome.  It also has its default values for the components and controls the stop criteria for the iteratively reweighted least square procedure.
+    
+         `max.iter` is the maximun number of iterations to perform, it guarantees the package to get a result within a reasonable time. The default value is set as 8. Previous tests shows after 3 to 4 iterations the results are quite similar to each other. 
+  
+         `tol.beta` is the threshold below which the procedure is deemed converged, which controls the absolute difference between consecutive beta updates (default = $10^{(-3)}$). 
+         
+         `tol.loss` is the threshold  below which the procedure is deemed converged, which controls the difference in consecutive loss updates (default = $10^{(-6)}$). 
+ 
+ 
+ Output is the estimated beta coefficients `coef`, the corresponding tuning parameters `lambda.selected`, and the `loss` of 
+ each combination of candidate tuning parameters
 ```{r load CNVreg package}
 # need to compile before being officially published
 # currently is not compiled
