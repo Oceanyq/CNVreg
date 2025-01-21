@@ -3,7 +3,7 @@ The *CNVreg* package provides functions to perform association analysis between 
 
 ## Functions in CNVreg package
 The *CNVreg* package has three main functions: `prep()` for data preparation, `cvfit_WTSMTH()` for cross-validation to select the best pair of many candidate tuning parameters and generate the effect coefficient at the selected tuning parameters, and `fit_WTSMTH()` for directly fitting a model with one pair of specific tuning parameters.  
- #### 1. The prep() function
+ #### 1. The data preparation function:  prep() 
 
   The prep() function has 3 main purposes. 
   
@@ -13,7 +13,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      Third,  it prepares the data format of CNV, covariates(`Z`), and outcome(`Y`) for further regression analysis.
      
-  The prep() function has 4 parameters, `CNV`, `Y`, `Z`, and `rare.out`. 
+  The prep() function takes 4 parameters as inputs, `CNV`, `Y`, `Z`, and `rare.out`. 
   
      `CNV` is a PLINK format text file that containes CNV events within a genome region. The CNVs are required to be processed one chromosome at a time.
      
@@ -23,7 +23,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      `rare.out` is to filter out rare CNV fragments below the thresholdto, it has a default value 0.05.
 
-  The output of prep() function has a list of six objects:
+  The output of prep() function provides all information needed to perform further regression analysis. It has a list of six objects:
   
     `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
     
@@ -45,18 +45,6 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
              
     `CNVR.info` summarizes the positions of all CNV fragments and their adjacency information. 
 
-The output of the prep() function provides all information needed to perform the penalized regression. 
- The analysis selects CNV fragments associated with the outcome and encourages similar effect size between adjacent fragments based on a given pair of tuning parameters ($\lambda_1$ and $\lambda_2$). Third, cvfit_WTSMTH() performs the similar penalized regression as in fit_WTSMTH with n-fold cross-validation to select the best pair of tuning parameters ($\lambda_1$ and $\lambda_2$) from a series of candidate values. 
-*prep()* , and . 
-We will have the output as a list of six objects:
-*design*: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
-*Z*: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
-*Y*: a matrix of 1 column with  sample ID as rownames. The rownames are in the same order as in the covariates.
-*weight.structure*: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represents two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
-*weight.options*: we provide 6 different types of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight "eql" means all adjacent CNV fragments are weighted by 1. Correlation based "wcs" weight would encourage more similar CNV fragments to share more information by increasing the relative weights. Inverse frequency weight ("wif") would encourage rare events to borrow information from nearby CNV fragments. All three versions of weights can further improve their relative weights by considering the number of samples with CNV events overlapping a certain region of CNV fragments ("keql", "kwcs", and "kwif"). 
-*CNVR.info* summarize the positions of all CNV fragments and their adjacency information. 
-
-The output of the prep() function provides all information needed to perform the penalized regression. 
 
 
 ### Load the *CNVreg* package
