@@ -4,9 +4,16 @@ The *CNVreg* package provides functions to perform association analysis between 
 ## Functions in CNVreg package
 The *CNVreg* package has three main functions. 
  #### 1. The prep() function
- The prep() function has 4 parameters, `CNV`, `Y`, `Z`, and `rare.out`. 
-     `CNV` is a PLINK format text,
-     `Y` takes , `Z`, and `rare.out`
+  The prep() function has 4 parameters, `CNV`, `Y`, `Z`, and `rare.out`. 
+  
+     `CNV` is a PLINK format text file that containes CNV events within a genome region. The CNVs are required to be processed one chromosome at a time.
+     
+     `Y` takes the outcomes of interest, which could be a binary or continuous trait.
+     
+     `Z` takes the covariates for adjustment, it's also OK to have no covariates.
+     
+     `rare.out` is the criteria to exclude rare CNV events with a default value 0.05. 
+     
      The function has 3 main purpose. 
      First, it converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare events. 
      Second, it 
