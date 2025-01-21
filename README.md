@@ -61,10 +61,10 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
    Penalization for smoothness: 
             
-      A weighted L\textsubscript{2}-fusion penalty on the adjacent CNV fragments to encourage similar effect coefficients between two consecutive fragments. 
+      A weighted $L_{2}$-fusion penalty on the adjacent CNV fragments to encourage similar effect coefficients between two consecutive fragments. 
 
       The tuning parameter $\lambda_{2}$ controls the level of penalization for smoothness. As $\lambda_{2}$ increases, the coefficients for adjacent CNV fragments become more similar to each other. 
-      When λ2 approaches 0, the model reduces to a Lasso regression.
+      When  approaches 0, the model reduces to a Lasso regression.
        
    The penalized regresssion model allows the CNV profile regression to estimate association effects, select trait-associated fragments, and smooth effect sizes for adjacent CNV fragments simultaneously.
    
