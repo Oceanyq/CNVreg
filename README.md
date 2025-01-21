@@ -47,7 +47,10 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 
 
-#### 2. The penalized regression function with cross-validation to fine-tune parameters ($\lambda and $\lambda$) using cvfit_WTSMTH(): `cvfit_WTSMTH()`
+#### 2. The association analysis with cross-validation to fine-tune parameters for penalized regression models: `cvfit_WTSMTH()`
+
+  The `cvfit_WTSMTH()` uses a generalized linear model with 2 penalty terms to perform the assiciation analysis. One of the penalty is a weighted L\textsubscript{2}-fusion penalty on the adjacent CNV fragments to encourage similar effect coefficients between two consecutive fragments. The other penalty is an L1 Lasso penalty to select trait-associated CNV fragments. These penalty
+terms allow the CNV profile regression to estimate association effects, smooth effect sizes for adjacent CNV fragments, and select trait-associated fragments simultaneously.
 
 ```{r load CNVreg package}
 # need to compile before being officially published
