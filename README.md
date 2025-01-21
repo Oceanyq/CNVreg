@@ -25,7 +25,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
   The output of `prep()` function provides all information needed to perform further regression analysis. It has a list of six objects:
   
-    `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
+    `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments. 
     
     `Z`: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
     
@@ -43,7 +43,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
              
              All three versions of weights can further improve their relative weights by multiplying the sample size that have CNV events overlapping a continuous region of CNV fragments ("keql", "kwcs", and "kwif").
              
-    `CNVR.info` summarizes the positions of all CNV fragments and their adjacency information. 
+    `CNVR.info` summarizes the positions of all CNV fragments and their adjacency information. Each row represents a CNV fragment and the fragment names match the column names in `design`
 
 
 
@@ -98,8 +98,14 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
          `tol.loss` is the threshold  below which the procedure is deemed converged, which controls the difference in consecutive loss updates (default = $10^{(-6)}$). 
  
  
- Output is the estimated beta coefficients `coef`, the corresponding tuning parameters `lambda.selected`, and the `loss` of 
- each combination of candidate tuning parameters
+ The output of the `cvfit_WTSMTH()` function is a list object contains 3 elements:
+
+    The `loss` is a table of the average validation loss for all combinations of candidate tuning parameters. The rownames are the candidate $\lambda_{1}$ values, the colnames are the candidate $\lambda_{2}$ values, and loss is each entry in the corresponding fields. 
+
+    The `lambda.selected` are the optimal tuning parameters with the lowest loss, which can be double-checked with the `loss` table.
+    
+    The estimated beta coefficients `coef` at the selected tuning parameters. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects.
+    
 ```{r load CNVreg package}
 # need to compile before being officially published
 # currently is not compiled
