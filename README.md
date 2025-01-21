@@ -47,7 +47,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 
 
-#### 2. The penalized regression function with cross-validation to fine-tune parameters ($\lambda_1$ and $\lambda_1$) using cvfit_WTSMTH(): `cvfit_WTSMTH()`
+#### 2. The penalized regression function with cross-validation to fine-tune parameters ($\lambda and $\lambda$) using cvfit_WTSMTH(): `cvfit_WTSMTH()`
 
 ```{r load CNVreg package}
 # need to compile before being officially published
