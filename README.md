@@ -49,8 +49,24 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 #### 2. The association analysis with cross-validation to fine-tune parameters for penalized regression models: `cvfit_WTSMTH()`
 
-  The `cvfit_WTSMTH()` uses a generalized linear model with 2 penalty terms to perform the assiciation analysis. One of the penalty is a weighted L\textsubscript{2}-fusion penalty on the adjacent CNV fragments to encourage similar effect coefficients between two consecutive fragments. The other penalty is an L1 Lasso penalty to select trait-associated CNV fragments. These penalty
-terms allow the CNV profile regression to estimate association effects, smooth effect sizes for adjacent CNV fragments, and select trait-associated fragments simultaneously.
+  The penalty terms and the tuning parameters in the association analysis. 
+  
+   The `cvfit_WTSMTH()` uses a generalized linear model with 2 penalty terms to perform the assiciation analysis. The strength of the penalization is controled by a tuning parameter for each penalty terms.   
+
+   Penalization for sparsity:
+       
+      An L\textsubscript{1} Lasso penalty to select trait-associated CNV fragments. 
+
+      The tuning parameter $\lambda_{1}$ controls the level of penalization for sparsity. As $\lambda_{1}$ increases, the model increases in sparsity, leading to fewer variables with non-zero coefficients
+
+   Penalization for smoothness: 
+            
+      A weighted L\textsubscript{2}-fusion penalty on the adjacent CNV fragments to encourage similar effect coefficients between two consecutive fragments. 
+
+      The tuning parameter $\lambda_{2}$ controls the level of penalization for smoothness. As $\lambda_{2}$ increases, the coefficients for adjacent CNV fragments become more similar to each other. 
+      When λ2 approaches 0, the model reduces to a Lasso regression.
+       
+   The penalized regresssion model allows the CNV profile regression to estimate association effects, select trait-associated fragments, and smooth effect sizes for adjacent CNV fragments simultaneously.
 
 ```{r load CNVreg package}
 # need to compile before being officially published
