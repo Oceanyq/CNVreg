@@ -1,7 +1,5 @@
-##This is an ongoing work, please reach out to the author for implementation
-
 ## Introduction
-Copy number variants (CNVs) are DNA gains or losses that can range in length from 50 base pairs (bp) to megabase. The analysis of CNV association needs to consider both the dosages and length of CNVs. This package provides functions to analyze association between a binary or continuous phenotype (outcome) and the CNVs over a genomic region 
+This package provides functions to perform association analysis between a binary (or continuous) outcome and the copy number variants (CNVs) over a genomic region. CNVs are DNA gains or losses that can range in length from 50 base pairs (bp) to megabase. The CNV association analysis needs to consider the effects of both the dosages and the length of CNVs.  To incorporates the information of CNV length and dosage, this package use a "CNV profile curve" to convert CNVs over a genomic region as a piecewise constant curve, which naturally dipicts the detailes of CNVs. The association analysis is then evaluated by regressing outcome values on the entire CNV profile curve while adjusting for covariates. The corresponding CNV effects are obtained at each genome position (i.e., per bp or per hundred bp), which is directly compatible between different studies.
 ## Implementation
 The *CNVreg* package performs association analysis between an outcome trait (either continuous or binary) and an individual’s entire copy number variant (CNV) profile within a genomic region with adjustment of covariates (such as age and sex) by implementing penalized regression. 
 
