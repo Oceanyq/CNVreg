@@ -47,7 +47,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 
 
-#### 2. The association analysis with cross-validation (CV) to fine-tune parameters for penalized regression models: `cvfit_WTSMTH()`
+#### 2. The association analysis with cross-validation (CV) to fine-tune parameters for a penalized regression model: `cvfit_WTSMTH()`
 
   ###### 2.1 The penalty terms and the tuning parameters in the association analysis. 
   
@@ -98,7 +98,42 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
          `tol.loss` is the threshold  below which the procedure is deemed converged, which controls the difference in consecutive loss updates (default = $10^{(-6)}$). 
  
  
- The output of the `cvfit_WTSMTH()` function is a list object contains 3 elements:
+ The output of the `cvfit_WTSMTH()` function is a list object contains 3 elements: `loss`,  `lambda.selected`, and `coef`.
+
+    The `loss` is a table of the average validation loss for all combinations of candidate tuning parameters. The rownames are the candidate $\lambda_{1}$ values, the colnames are the candidate $\lambda_{2}$ values, and loss is each entry in the corresponding fields. 
+
+    The `lambda.selected` are the optimal tuning parameters with the lowest loss, which can be double-checked with the `loss` table.
+    
+    The estimated beta coefficients `coef` at the selected tuning parameters. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects.
+
+#### 3. The association analysis with a specific pair of parameters $\lambda_{1}$ and $\lambda_{2}$ for a penalized regression model: `fit_WTSMTH()`
+
+  ###### 2.1 The penalty terms and the tuning parameters in the association analysis. 
+  
+   The `fit_WTSMTH()` and the `cvfit_WTSMTH()` uses the same analytical methods with a generalized linear model with 2 penalty terms to perform the assiciation analysis. The penalized regresssion model allows the CNV profile regression to estimate association effects, select trait-associated fragments, and smooth effect sizes for adjacent CNV fragments simultaneously.
+   
+   The strength of the penalization is controled by a tuning parameter for each penalty terms. The tuning parameter $\lambda_{1}$ controls the $L_{1}$ Lasso penalty to perform variable selection; the tuning parameter $\lambda_{2}$ controls the weighted $L_{2}$-fusion penalty to perform effect smoothness. Unlike the `cvfit_WTSMTH()` function that will fine-tune the parameters and select the optimal combination of $\lambda_{1}$ and $\lambda_{2}$, the `fit_WTSMTH()` function takes one value for $\lambda_{1}$ and one value $\lambda_{2}$ and estimate the coefficients for the given pair of parameters. This function is used when the user knows the optimal tuning parameters, or when the user wants to do preliminary tests before the formal analysis. It is much faster to perform `fit_WTSMTH()` than the `cvfit_WTSMTH()`. 
+       
+   ###### 2.2  Inputs and outputs of `fit_WTSMTH()`
+   
+  The `fit_WTSMTH()` function has 6 inputs. Compare to the `cvfit_WTSMTH()`, `fit_WTSMTH()` does not need the input term that controls CV procedure. 
+      
+     `data` is a list object produced from the `prep()` function
+        
+     `lambda1` and `lambda2` are the two vectors of candidate tuning tuning parameters for the Lasso penalty and the weighted fusion penalty. The n-fold CV would select the optimal parameters from these candidates. During the implementation, we transforms the two values as $2^{8}$ where * represents each element of the two vectors.
+        
+    `family` must choose from "gaussian"/"binomial", which indicates a continuous/binary outcome.
+
+    `iter.control is specificly used for a binary outcome.  It also has its default values for the components and controls the stop criteria for the iteratively reweighted least square procedure.
+    
+         `max.iter` is the maximun number of iterations to perform, it guarantees the package to get a result within a reasonable time. The default value is set as 8. Previous tests shows after 3 to 4 iterations the results are quite similar to each other. 
+  
+         `tol.beta` is the threshold below which the procedure is deemed converged, which controls the absolute difference between consecutive beta updates (default = $10^{(-3)}$). 
+         
+         `tol.loss` is the threshold  below which the procedure is deemed converged, which controls the difference in consecutive loss updates (default = $10^{(-6)}$). 
+ 
+ 
+ The output of the `cvfit_WTSMTH()` function is a list object contains 3 elements: `loss`,  `lambda.selected`, and `coef`.
 
     The `loss` is a table of the average validation loss for all combinations of candidate tuning parameters. The rownames are the candidate $\lambda_{1}$ values, the colnames are the candidate $\lambda_{2}$ values, and loss is each entry in the corresponding fields. 
 
