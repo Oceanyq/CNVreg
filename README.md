@@ -133,14 +133,12 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
          `tol.loss` is the threshold  below which the procedure is deemed converged, which controls the difference in consecutive loss updates (default = $10^{(-6)}$). 
  
  
- The output of the `cvfit_WTSMTH()` function is a list object contains 3 elements: `loss`,  `lambda.selected`, and `coef`.
+ The output of the `fit_WTSMTH()` function is the estimated `coef` at the given \lambda_{1}$ and $\lambda_{2}$ values. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects.
 
-    The `loss` is a table of the average validation loss for all combinations of candidate tuning parameters. The rownames are the candidate $\lambda_{1}$ values, the colnames are the candidate $\lambda_{2}$ values, and loss is each entry in the corresponding fields. 
 
-    The `lambda.selected` are the optimal tuning parameters with the lowest loss, which can be double-checked with the `loss` table.
-    
-    The estimated beta coefficients `coef` at the selected tuning parameters. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects.
-    
+
+## A quick example to implement the *CNVreg* package
+
 ```{r load CNVreg package}
 # need to compile before being officially published
 # currently is not compiled
