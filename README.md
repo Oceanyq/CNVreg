@@ -1,6 +1,119 @@
 ##This is an ongoing work, please reach out to the author for implementation
 
 ## Introduction
+Copy number variants (CNVs) are DNA gains or losses that can range in length from 50 base pairs (bp) to megabase. The analysis of CNV association needs to consider both the dosages and length of CNVs. This package provides functions to analyze association between a binary or continuous phenotype (outcome) and the CNVs over a genomic region 
+## Implementation
+The *CNVreg* package performs association analysis between an outcome trait (either continuous or binary) and an individual’s entire copy number variant (CNV) profile within a genomic region with adjustment of covariates (such as age and sex) by implementing penalized regression. 
+
+The package has three main functions. First, the prep() function converts an individual's CNV events in PLINK format into CNV fragments and characterizes the dosage and length of CNV fragments; meanwhile, it process the adjacency relation between fragments, preparing for further effect smoothing between effects of adjacent CNV fragments; in addition, it takes covariates and outcome information and preprocess the data format to prepare for the penalized regression. Second, fit_WTSMTH() function performs penalized regression between trait values and all CNV fragments over a genomic region (e.g. chromosome) while adjusting for covariates. The analysis selects CNV fragments associated with the outcome and encourages similar effect size between adjacent fragments based on a given pair of tuning parameters ($\lambda_1$ and $\lambda_2$). Third, cvfit_WTSMTH() performs the similar penalized regression as in fit_WTSMTH with n-fold cross-validation to select the best pair of tuning parameters ($\lambda_1$ and $\lambda_2$) from a series of candidate values. 
+
+
+### Load the *CNVreg* package
+```{r load CNVreg package}
+# need to compile before being officially published
+# currently is not compiled
+#library("CNVreg")
+
+```
+
+### Load the simulated data as a quick example
+We simulated this set of data to demonstrate how the CNVreg package works. The input data file *CNV* is in PLINK format with required columns (and the proper column names): sample ID ("ID"), Chromosome ("CHR"), CNV starting position ("BP1"), CNV ending position ("BP2"), and CNV type ("TYPE"). The covariate file *Covatiate* includes confounders to be adjusted with a required sample ID ("ID") column and a desired number of covarites in the following columns. Here we simulated "sex" as a covariate variable. The outcome can be either a continuous outcome or a binary outcome, which has a column of sample ID ("ID") and a column of outcome trait of interest. 
+For illustration purpose, we prepared two outcome files to showcase the continuous outcome (Y_ctns) and the binary outcome (Y_bnry). 
+We set the intercept to -2, covariate sex has effect 0.2 for sex=1, and the non-zero signals are set at CNV fragments (del64:del74) with b[del64:del74] = 1 for continuous outcome and b[del64:del74] = 2 for binary outcome. 
+```{r load the quick example using simulated data}
+# need to double check how to load data from the package's datafile
+# Example is based on rare data, need to modify the dataset
+#data("CNVreg")
+#CNV=data("CNV")
+#Cov=data("Covariate")
+#Y_ctns=data("Y_ctns")
+#Y_bnry=data("Y_bnry")
+```
+
+### Preprocessing CNV data and prepare for regression with function prep(). 
+
+```{r echo=TRUE}
+#for continuous outcome
+#cnvcov_c <- prep(CNV = cnvData, Y = Y_ctns, Z = covData, rare.out = 0.0001)
+#for binary outcome, similar code
+#cnvcov_b <- prep(CNV = cnvData, Y = Y_bnry, Z = covData, rare.out = 0.0001)
+```
+*prep()* would prepare CNV data as CNV fragments, filter out rare CNV fragments below the threshold *rare.out*, and preprocess data format of the outcome Y and covariates Z. 
+We will have the output as a list of six objects:
+*design*: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
+*Z*: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
+*Y*: a matrix of 1 column with  sample ID as rownames. The rownames are in the same order as in the covariates.
+*weight.structure*: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represents two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
+*weight.options*: we provide 6 different types of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight "eql" means all adjacent CNV fragments are weighted by 1. Correlation based "wcs" weight would encourage more similar CNV fragments to share more information by increasing the relative weights. Inverse frequency weight ("wif") would encourage rare events to borrow information from nearby CNV fragments. All three versions of weights can further improve their relative weights by considering the number of samples with CNV events overlapping a certain region of CNV fragments ("keql", "kwcs", and "kwif"). 
+*CNVR.info* summarize the positions of all CNV fragments and their adjacency information. 
+
+The output of the prep() function provides all information needed to perform the penalized regression. 
+
+### Fit a penalized regression with lasso and weighted fussion using fit_WTSMTH() at a given level of tuning parameters
+```{r echo=TRUE}
+#for continuous outcome
+#b_c <- fit_WTSMTH(data=cnvcov_c, lambda1 = -8, lambda2 = 0, weight="eql", family = "gaussian")
+# for binary outcome
+#b_b <- fit_WTSMTH(data=cnvcov_b, lambda1 = -8, lambda2 = 0, weight="eql", family = "binomial")
+
+```
+In fit_WTSMTH() function, 
+*data* is the output from prep() function.
+*lambda1* and *lambda2* are provided by the user to control the sparsity of variable selection and the level of effect smoothness. A larger *lambda1* would produce a sparser result with fewer CNV fragments selected to be important. A larger *lambda2* would encourage adjacent CNV fragments to have more similar effect sizes. In the function fit_WTSMTH(), *lambda1* and *lambda2* are both converted to 2^(lambda1) and 2^(lambda2), so the user can choose from real number. 
+*weight* can be chosen from the weight.options from the prep() function, available options are ("eql", "wcs", "wif", "keql", "kwcs", "kwif").
+*family* can be "gaussian" for a countinuous outcome and "binomial" for a binary outcome. 
+The output of fit_WTSMTH() function is the coefficients of all variables, including intercept, CNV effects, covarite effects. 
+
+
+### Cross validation to fine-tune parameters ( $\lambda_1$ and $\lambda_1$) using cvfit_WTSMTH()
+```{r echo=TRUE}
+#for continuous outcome
+#b_c_cv <- cvfit_WTSMTH(data=cnvcov_c, lambda1 = seq(-15,-5, 3), lambda2 =seq(-4, 4, 2), weight="eql", family = "gaussian")
+# for binary outcome
+#b_b_cv <- cvfit_WTSMTH(data=cnvcov_b, lambda1 = seq(-15,-5, 3), lambda2 = seq(-4, 4, 2), weight="eql", family = "binomial")
+
+```
+The cvfit_WTSMTH() function accepts similar terms as in function fit_WTSMTH(). The main difference is that *lambda1* and *lambda2* are accepting a series of candidate values and the cross validation procedure would pick the best pair of parameters  $\lambda_1$ and $\lambda_1$ that minimize the validation loss.  
+By default, the function would perform 5-fold cross validation and the user can specify a different number of folds by specify the *nfold*. 
+To allow faster processing, the user can also specify using parallele computing by asign the number of cores for the computation by specify *ncore*.
+The output of fit_WTSMTH() function gives the best pair of  $\lambda_1$ and $\lambda_1$ from the candidate values and the corresponding coefficients of all variables, including intercept, CNV effects, covarite effects. Usually the user has to start from a broader range of candidate values and narrow it down by updating the candidates after observing the results. 
+
+### Compare the true signal with the estimates
+```{r echo=TRUE}
+######################non-zero signals for simulation
+#intercept b0: -2
+#b["age"]: 0.2
+#b_c_true[paste0("del", 64:74)] : 1,
+#b_b_true[paste0("del", 64:74)] : 2 
+#######################################
+#print(b_c[c(paste0("del", 64:74),"SEX")])
+#print(b_b[c(paste0("del", 64:74),"SEX")])
+#b_c[c(paste0("del", 64:74),"SEX")]
+#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
+#1.0697263 0.7340689 0.6140854 0.7105877 0.9127402 1.1526129 0.9647277 0.6429805 0.3862995 0.2116475 0.1246587 0.1926006
+
+#b_b[c(paste0("del", 64:74),"SEX")]
+#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74        SEX 
+#0.33640068 0.06808373 0.00000000 0.00000000 0.00000000 0.09740618 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.15653618 
+########CV tuning 
+#for ctns: tuning parameters selected: lambda1 =-9, lambda2=-2
+#print(b_c_cv$coef[c(paste0("del", 64:74),"SEX")])
+#
+#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
+#1.2101534 0.6822391 0.4956110 0.6679145 0.9172944 1.2647549 1.0794324 0.5713049 0.1205602 0.0000000 0.0000000 0.207478
+
+#for binary: tuning parameters selected: lambda1 =-12, lambda2=-4
+#print(b_b_cv$coef[c(paste0("del", 64:74),"SEX")])
+#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74  SEX
+#0.18972697 0.00000000 0.00000000 0.00000000 0.07393405 0.25124648 0.01072678 0.00000000 0.00000000 0.00000000 0.00000000 0.2061167
+
+### False positives
+
+
+### use plots to compare true signal and estimated signals
+
+
+## A brief summary of the CNVreg penalized regression framework
 
 ### The CNVreg framework 
 
@@ -114,114 +227,3 @@ Tuning parameter $\lambda_2$ controls the $L_2$ penalty
 \label{L2}
 \end{eqnarray}
 As $\lambda_2$ increases, the coefficients for adjacent CNV fragments become more similar to each other. When $\lambda_2=0$, the model reduces to a Lasso regression.
-
-
-## Implementation
-The *CNVreg* package performs association analysis between an outcome trait (either continuous or binary) and an individual’s entire copy number variant (CNV) profile within a genomic region with adjustment of covariates (such as age and sex) by implementing penalized regression. 
-
-The package has three main functions. First, the prep() function converts an individual's CNV events in PLINK format into CNV fragments and characterizes the dosage and length of CNV fragments; meanwhile, it process the adjacency relation between fragments, preparing for further effect smoothing between effects of adjacent CNV fragments; in addition, it takes covariates and outcome information and preprocess the data format to prepare for the penalized regression. Second, fit_WTSMTH() function performs penalized regression between trait values and all CNV fragments over a genomic region (e.g. chromosome) while adjusting for covariates. The analysis selects CNV fragments associated with the outcome and encourages similar effect size between adjacent fragments based on a given pair of tuning parameters ($\lambda_1$ and $\lambda_2$). Third, cvfit_WTSMTH() performs the similar penalized regression as in fit_WTSMTH with n-fold cross-validation to select the best pair of tuning parameters ($\lambda_1$ and $\lambda_2$) from a series of candidate values. 
-
-
-### Load the *CNVreg* package
-```{r load CNVreg package}
-# need to compile before being officially published
-# currently is not compiled
-#library("CNVreg")
-
-```
-
-### Load the simulated data as a quick example
-We simulated this set of data to demonstrate how the CNVreg package works. The input data file *CNV* is in PLINK format with required columns (and the proper column names): sample ID ("ID"), Chromosome ("CHR"), CNV starting position ("BP1"), CNV ending position ("BP2"), and CNV type ("TYPE"). The covariate file *Covatiate* includes confounders to be adjusted with a required sample ID ("ID") column and a desired number of covarites in the following columns. Here we simulated "sex" as a covariate variable. The outcome can be either a continuous outcome or a binary outcome, which has a column of sample ID ("ID") and a column of outcome trait of interest. 
-For illustration purpose, we prepared two outcome files to showcase the continuous outcome (Y_ctns) and the binary outcome (Y_bnry). 
-We set the intercept to -2, covariate sex has effect 0.2 for sex=1, and the non-zero signals are set at CNV fragments (del64:del74) with b[del64:del74] = 1 for continuous outcome and b[del64:del74] = 2 for binary outcome. 
-```{r load the quick example using simulated data}
-# need to double check how to load data from the package's datafile
-# Example is based on rare data, need to modify the dataset
-#data("CNVreg")
-#CNV=data("CNV")
-#Cov=data("Covariate")
-#Y_ctns=data("Y_ctns")
-#Y_bnry=data("Y_bnry")
-```
-
-### Preprocessing CNV data and prepare for regression with function prep(). 
-
-```{r echo=TRUE}
-#for continuous outcome
-#cnvcov_c <- prep(CNV = cnvData, Y = Y_ctns, Z = covData, rare.out = 0.0001)
-#for binary outcome, similar code
-#cnvcov_b <- prep(CNV = cnvData, Y = Y_bnry, Z = covData, rare.out = 0.0001)
-```
-*prep()* would prepare CNV data as CNV fragments, filter out rare CNV fragments below the threshold *rare.out*, and preprocess data format of the outcome Y and covariates Z. 
-We will have the output as a list of six objects:
-*design*: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
-*Z*: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
-*Y*: a matrix of 1 column with  sample ID as rownames. The rownames are in the same order as in the covariates.
-*weight.structure*: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represents two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
-*weight.options*: we provide 6 different types of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight "eql" means all adjacent CNV fragments are weighted by 1. Correlation based "wcs" weight would encourage more similar CNV fragments to share more information by increasing the relative weights. Inverse frequency weight ("wif") would encourage rare events to borrow information from nearby CNV fragments. All three versions of weights can further improve their relative weights by considering the number of samples with CNV events overlapping a certain region of CNV fragments ("keql", "kwcs", and "kwif"). 
-*CNVR.info* summarize the positions of all CNV fragments and their adjacency information. 
-
-The output of the prep() function provides all information needed to perform the penalized regression. 
-
-### Fit a penalized regression with lasso and weighted fussion using fit_WTSMTH() at a given level of tuning parameters
-```{r echo=TRUE}
-#for continuous outcome
-#b_c <- fit_WTSMTH(data=cnvcov_c, lambda1 = -8, lambda2 = 0, weight="eql", family = "gaussian")
-# for binary outcome
-#b_b <- fit_WTSMTH(data=cnvcov_b, lambda1 = -8, lambda2 = 0, weight="eql", family = "binomial")
-
-```
-In fit_WTSMTH() function, 
-*data* is the output from prep() function.
-*lambda1* and *lambda2* are provided by the user to control the sparsity of variable selection and the level of effect smoothness. A larger *lambda1* would produce a sparser result with fewer CNV fragments selected to be important. A larger *lambda2* would encourage adjacent CNV fragments to have more similar effect sizes. In the function fit_WTSMTH(), *lambda1* and *lambda2* are both converted to 2^(lambda1) and 2^(lambda2), so the user can choose from real number. 
-*weight* can be chosen from the weight.options from the prep() function, available options are ("eql", "wcs", "wif", "keql", "kwcs", "kwif").
-*family* can be "gaussian" for a countinuous outcome and "binomial" for a binary outcome. 
-The output of fit_WTSMTH() function is the coefficients of all variables, including intercept, CNV effects, covarite effects. 
-
-
-### Cross validation to fine-tune parameters ( $\lambda_1$ and $\lambda_1$) using cvfit_WTSMTH()
-```{r echo=TRUE}
-#for continuous outcome
-#b_c_cv <- cvfit_WTSMTH(data=cnvcov_c, lambda1 = seq(-15,-5, 3), lambda2 =seq(-4, 4, 2), weight="eql", family = "gaussian")
-# for binary outcome
-#b_b_cv <- cvfit_WTSMTH(data=cnvcov_b, lambda1 = seq(-15,-5, 3), lambda2 = seq(-4, 4, 2), weight="eql", family = "binomial")
-
-```
-The cvfit_WTSMTH() function accepts similar terms as in function fit_WTSMTH(). The main difference is that *lambda1* and *lambda2* are accepting a series of candidate values and the cross validation procedure would pick the best pair of parameters  $\lambda_1$ and $\lambda_1$ that minimize the validation loss.  
-By default, the function would perform 5-fold cross validation and the user can specify a different number of folds by specify the *nfold*. 
-To allow faster processing, the user can also specify using parallele computing by asign the number of cores for the computation by specify *ncore*.
-The output of fit_WTSMTH() function gives the best pair of  $\lambda_1$ and $\lambda_1$ from the candidate values and the corresponding coefficients of all variables, including intercept, CNV effects, covarite effects. Usually the user has to start from a broader range of candidate values and narrow it down by updating the candidates after observing the results. 
-
-### Compare the true signal with the estimates
-```{r echo=TRUE}
-######################non-zero signals for simulation
-#intercept b0: -2
-#b["age"]: 0.2
-#b_c_true[paste0("del", 64:74)] : 1,
-#b_b_true[paste0("del", 64:74)] : 2 
-#######################################
-#print(b_c[c(paste0("del", 64:74),"SEX")])
-#print(b_b[c(paste0("del", 64:74),"SEX")])
-#b_c[c(paste0("del", 64:74),"SEX")]
-#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
-#1.0697263 0.7340689 0.6140854 0.7105877 0.9127402 1.1526129 0.9647277 0.6429805 0.3862995 0.2116475 0.1246587 0.1926006
-
-#b_b[c(paste0("del", 64:74),"SEX")]
-#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74        SEX 
-#0.33640068 0.06808373 0.00000000 0.00000000 0.00000000 0.09740618 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.15653618 
-########CV tuning 
-#for ctns: tuning parameters selected: lambda1 =-9, lambda2=-2
-#print(b_c_cv$coef[c(paste0("del", 64:74),"SEX")])
-#
-#    del64     del65     del66     del67     del68     del69     del70     del71     del72     del73     del74  SEX
-#1.2101534 0.6822391 0.4956110 0.6679145 0.9172944 1.2647549 1.0794324 0.5713049 0.1205602 0.0000000 0.0000000 0.207478
-
-#for binary: tuning parameters selected: lambda1 =-12, lambda2=-4
-#print(b_b_cv$coef[c(paste0("del", 64:74),"SEX")])
-#     del64      del65      del66      del67      del68      del69      del70      del71      del72      del73      del74  SEX
-#0.18972697 0.00000000 0.00000000 0.00000000 0.07393405 0.25124648 0.01072678 0.00000000 0.00000000 0.00000000 0.00000000 0.2061167
-
-### False positives
-
-
-### use plots to compare true signal and estimated signals
