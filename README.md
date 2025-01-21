@@ -1,9 +1,9 @@
 ## Introduction
 The *CNVreg* package provides functions to perform association analysis between a binary (or continuous) outcome and the copy number variants (CNVs) over a genomic region. CNVs are DNA gains or losses that can range in length from 50 base pairs (bp) to megabase. The CNV association analysis needs to consider the effects of both the dosages and the length of CNVs.  To incorporates the information of CNV length and dosage, this package use a "CNV profile curve" to convert CNVs over a genomic region as a piecewise constant curve, which naturally dipicts the detailes of CNVs. The association analysis is then evaluated by regressing outcome values on the entire CNV profile curve while adjusting for covariates. The corresponding CNV effects are obtained at each genome position (i.e., effect of per bp or effect of per hundred bp of CNV), which is directly comparable across different studies.
 
-## Functions in CNVreg package
+## Functions in *CNVreg* package
 The *CNVreg* package has three main functions: `prep()` for data preparation, `cvfit_WTSMTH()` for cross-validation to select the best pair of many candidate tuning parameters and generate the effect coefficient at the selected tuning parameters, and `fit_WTSMTH()` for directly fitting a model with one pair of specific tuning parameters.  
- #### 1. The data preparation function:  prep() 
+ #### 1. The data preparation function:  `prep()`
 
   The prep() function has 3 main purposes. 
   
@@ -13,7 +13,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      Third,  it prepares the data format of CNV, covariates(`Z`), and outcome(`Y`) for further regression analysis.
      
-  The prep() function takes 4 parameters as inputs, `CNV`, `Y`, `Z`, and `rare.out`. 
+  The `prep()` function takes 4 parameters as inputs, `CNV`, `Y`, `Z`, and `rare.out`. 
   
      `CNV` is a PLINK format text file that containes CNV events within a genome region. The CNVs are required to be processed one chromosome at a time.
      
@@ -23,7 +23,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      `rare.out` is to filter out rare CNV fragments below the thresholdto, it has a default value 0.05.
 
-  The output of prep() function provides all information needed to perform further regression analysis. It has a list of six objects:
+  The output of `prep()` function provides all information needed to perform further regression analysis. It has a list of six objects:
   
     `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
     
