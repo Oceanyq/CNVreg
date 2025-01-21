@@ -2,7 +2,7 @@
 The *CNVreg* package provides functions to perform association analysis between a binary (or continuous) outcome and the copy number variants (CNVs) over a genomic region. CNVs are DNA gains or losses that can range in length from 50 base pairs (bp) to megabase. The CNV association analysis needs to consider the effects of both the dosages and the length of CNVs.  To incorporates the information of CNV length and dosage, this package use a "CNV profile curve" to convert CNVs over a genomic region as a piecewise constant curve, which naturally dipicts the detailes of CNVs. The association analysis is then evaluated by regressing outcome values on the entire CNV profile curve while adjusting for covariates. The corresponding CNV effects are obtained at each genome position (i.e., effect of per bp or effect of per hundred bp of CNV), which is directly comparable across different studies.
 
 ## Functions in CNVreg package
-The *CNVreg* package has three main functions. 
+The *CNVreg* package has three main functions: `prep()` for data preparation, `cvfit_WTSMTH()` for cross-validation to select the best pair of many candidate tuning parameters and generate the effect coefficient at the selected tuning parameters, and `fit_WTSMTH()` for directly fitting a model with one pair of specific tuning parameters.  
  #### 1. The prep() function
   The prep() function has 4 parameters, `CNV`, `Y`, `Z`, and `rare.out`. 
   
@@ -12,13 +12,37 @@ The *CNVreg* package has three main functions.
      
      `Z` takes the covariates for adjustment, it's also OK to have no covariates.
      
-     `rare.out` is the criteria to exclude rare CNV events with a default value 0.05. 
+     `rare.out` is to filter out rare CNV fragments below the thresholdto, it has a default value 0.05. 
      
-     The function has 3 main purpose. 
-     First, it converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare events. 
-     Second, it 
- The input  PLINK format into CNV fragments and characterizes the dosage and length of CNV fragments; meanwhile, it process the adjacency relation between fragments, preparing for further effect smoothing between effects of adjacent CNV fragments; 
- in addition, it takes covariates and outcome information and preprocess the data format to prepare for the penalized regression. Second, fit_WTSMTH() function performs penalized regression between trait values and all CNV fragments over a genomic region (e.g. chromosome) while adjusting for covariates. The analysis selects CNV fragments associated with the outcome and encourages similar effect size between adjacent fragments based on a given pair of tuning parameters ($\lambda_1$ and $\lambda_2$). Third, cvfit_WTSMTH() performs the similar penalized regression as in fit_WTSMTH with n-fold cross-validation to select the best pair of tuning parameters ($\lambda_1$ and $\lambda_2$) from a series of candidate values. 
+  The prep() function has 3 main purposes. 
+     First, it converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
+     Second, it analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
+     Third,  it prepares the data format of CNV, covariates(`Z`), and outcome(`Y`) for further regression analysis.
+
+  The output os prep() function is a list of six objects:
+    `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
+    `Z`: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
+    `Y`: a matrix of 1 column with sample ID as rownames. The rownames are in the same order as in the covariates.
+    `weight.structure`: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represent two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
+    `weight.options`: we provide 6 different options of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. 
+             Equal weight `eql` means all adjacent CNV fragments are weighted by 1.
+             Coscine-similarity based weight `wcs` would encourage more similar CNV fragments to share more information by increasing the relative weights. 
+             Inverse frequency weight `wif` would encourage rare events to borrow information from nearby more frequent CNV fragments. 
+             All three versions of weights can further improve their relative weights by multiplying the sample size that have CNV events overlapping a continuous region of CNV fragments ("keql", "kwcs", and "kwif"). 
+    `CNVR.info` summarize the positions of all CNV fragments and their adjacency information. 
+
+The output of the prep() function provides all information needed to perform the penalized regression. 
+ The analysis selects CNV fragments associated with the outcome and encourages similar effect size between adjacent fragments based on a given pair of tuning parameters ($\lambda_1$ and $\lambda_2$). Third, cvfit_WTSMTH() performs the similar penalized regression as in fit_WTSMTH with n-fold cross-validation to select the best pair of tuning parameters ($\lambda_1$ and $\lambda_2$) from a series of candidate values. 
+*prep()* , and . 
+We will have the output as a list of six objects:
+*design*: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
+*Z*: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
+*Y*: a matrix of 1 column with  sample ID as rownames. The rownames are in the same order as in the covariates.
+*weight.structure*: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represents two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
+*weight.options*: we provide 6 different types of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight "eql" means all adjacent CNV fragments are weighted by 1. Correlation based "wcs" weight would encourage more similar CNV fragments to share more information by increasing the relative weights. Inverse frequency weight ("wif") would encourage rare events to borrow information from nearby CNV fragments. All three versions of weights can further improve their relative weights by considering the number of samples with CNV events overlapping a certain region of CNV fragments ("keql", "kwcs", and "kwif"). 
+*CNVR.info* summarize the positions of all CNV fragments and their adjacency information. 
+
+The output of the prep() function provides all information needed to perform the penalized regression. 
 
 
 ### Load the *CNVreg* package
@@ -51,16 +75,6 @@ We set the intercept to -2, covariate sex has effect 0.2 for sex=1, and the non-
 #for binary outcome, similar code
 #cnvcov_b <- prep(CNV = cnvData, Y = Y_bnry, Z = covData, rare.out = 0.0001)
 ```
-*prep()* would prepare CNV data as CNV fragments, filter out rare CNV fragments below the threshold *rare.out*, and preprocess data format of the outcome Y and covariates Z. 
-We will have the output as a list of six objects:
-*design*: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments.
-*Z*: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
-*Y*: a matrix of 1 column with  sample ID as rownames. The rownames are in the same order as in the covariates.
-*weight.structure*: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represents two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
-*weight.options*: we provide 6 different types of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight "eql" means all adjacent CNV fragments are weighted by 1. Correlation based "wcs" weight would encourage more similar CNV fragments to share more information by increasing the relative weights. Inverse frequency weight ("wif") would encourage rare events to borrow information from nearby CNV fragments. All three versions of weights can further improve their relative weights by considering the number of samples with CNV events overlapping a certain region of CNV fragments ("keql", "kwcs", and "kwif"). 
-*CNVR.info* summarize the positions of all CNV fragments and their adjacency information. 
-
-The output of the prep() function provides all information needed to perform the penalized regression. 
 
 ### Fit a penalized regression with lasso and weighted fussion using fit_WTSMTH() at a given level of tuning parameters
 ```{r echo=TRUE}
