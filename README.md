@@ -13,7 +13,7 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
      
      Third,  it prepares the data format of CNV, covariates(`Z`), and outcome(`Y`) for further regression analysis.
      
-  The `prep()` function takes 4 parameters as inputs, `CNV`, `Y`, `Z`, and `rare.out`. 
+  The inputs of `prep()` function take 4 parameters: `CNV`, `Y`, `Z`, and `rare.out`. 
   
      `CNV` is a PLINK format text file that containes CNV events within a genome region. The CNVs are required to be processed one chromosome at a time.
      
@@ -47,7 +47,8 @@ The *CNVreg* package has three main functions: `prep()` for data preparation, `c
 
 
 
-### Load the *CNVreg* package
+#### 2. The penalized regression function with cross-validation to fine-tune parameters ($\lambda_1$ and $\lambda_1$) using cvfit_WTSMTH(): `cvfit_WTSMTH()`
+
 ```{r load CNVreg package}
 # need to compile before being officially published
 # currently is not compiled
