@@ -1,3 +1,6 @@
+#' Inner Function: `.probPred()`
+#' Logit transformation
+
 #' Wrapper around plogis
 #' @noRd
 #' @param X A numeric vector.

@@ -1,4 +1,6 @@
-#' Construct A Weight Matrix
+#' Inner Function `.weightMatrix()`
+#' 
+#' Construct Weight Matrices based on CNV fragments in wide format and the frequency and rare event rate(exclusion). 
 #'
 #' @noRd
 #' @param wide.data A sparseMatrix of dimension n (unique participants) x n_fragments;
@@ -56,7 +58,7 @@
     seq_frag <- not.rare.idx[seq_s:seq_e]
     n_frag <- length(seq_frag)
     
-    CNVR_block <- wide.data[, seq_frag, drop = FALSE]
+    CNVR_block <- wide.data[, seq_frag, drop = FALSE] |> data.matrix()
     
     CNV_summary <- rbind(CNV_summary, 
                          cbind(CNVR_id, seq_frag, freq[seq_frag]))
@@ -90,7 +92,7 @@
     }
     
     CNVR_id = CNVR_id + 1L
-    
+    print(CNVR_id)
     not.rare.idx <- not.rare.idx[-(seq_s:seq_e)]
     
   }
@@ -105,9 +107,9 @@
   weight_options <- weight_options * norm_nonzero / norm_sum
   weight_options[is.na(weight_options)] <- 0.0
   
-  if (!any(weight_structure > 0.5)) {
-    stop("weight structure is all zeros", call. = FALSE)
-  }
+  #if (!any(weight_structure > 0.5)) {
+  #  stop("weight structure is all zeros", call. = FALSE)
+  #}
   
   list("weight.structure" = weight_structure,
        "weight.options" = weight_options,

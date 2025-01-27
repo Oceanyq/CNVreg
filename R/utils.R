@@ -1,3 +1,5 @@
+#' Inner Functions for regression related data format transformation
+#' 
 #' Combine CNV design with covariates
 #' 
 #' @noRd
@@ -75,6 +77,7 @@
 }
 
 .confirmBinary <- function(Y) {
+  dn <- dimnames(Y)
   if (!.isIntegerVector(Y) || !all(Y %in% c(0L, 1L))) {
     if (is.numeric(Y) && !isTRUE(all.equal(Y, round(Y)))) {
       stop("Y is not integer-like", call. = FALSE)
@@ -85,7 +88,10 @@
     }
     Y <- {unclass(Y) - 1L} |> as.integer()
   }
+
+  names(Y) <- dn[1]
   Y
+  
 }
 
 .confirmContinuous <- function(Y) {

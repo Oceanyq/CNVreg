@@ -1,3 +1,8 @@
+#' Inner Function: `.wideFrequency`
+#' 
+#' Calculates the frequency of each column of the wide data for CNV fragments
+#' and find the non-rare CNV fragments.
+#' 
 #' @noRd
 #' @param wide.raw a sparse matrix, result from function Wide_Type_Raw
 #' @param sample.size an integer, from Z covariates and Y outcomes file, number of unique IDs of cov

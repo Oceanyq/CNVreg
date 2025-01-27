@@ -1,5 +1,9 @@
-#' Linear regression with Lasso and Weighted fusion penalties for
-#' continuous outcomes to get coefficient estimates
+#' Inner Function `.ctnsSolution()`
+#' 
+#' Penalized regression with Lasso and weighted fusion penalties for a continuous 
+#' outcome. Specifically, it performs linear regression with Lasso penalties for
+#' augmented data (which incorporates weighted fusion penalty and a given lambda_2)
+#' for a continuous outcome. Get coefficient estimates at the given lambda 1. 
 #'
 #' @noRd
 #' @param X.aug A sparseMatrix. CNV fragments (X) and covariates (Z),
@@ -25,7 +29,7 @@
   
 
   XZ_aug <- rbind(data$XZ_update, X.app)
-  Y_aug <- c(data$Y_update, Y.app)
+  Y_aug <- c(data$Y_update, Y.app) 
 
   
   p_fac <- rep(1.0, ncol(XZ_aug))

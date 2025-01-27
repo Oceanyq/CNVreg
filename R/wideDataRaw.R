@@ -1,6 +1,8 @@
-#' input data with interval tags for 1 type of CNV
-#' returns CNV intervals (all possible intervals, including those
-#'  with no CNV activity) as CNV fragments in wide format (as defined in CNVRular)
+#' Inner Function: `.wideDataRaw()`
+#' 
+#' Convert CNV data from long format to a wide format that has each column represents 
+#' the CNV intervals (all possible intervals, including those with no CNV activity)
+#'as CNV fragments, and each row represents one sample. 
 #'
 #' @noRd
 #' @param cnv.long A data.frame object containin

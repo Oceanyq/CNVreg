@@ -1,3 +1,5 @@
+#'Inner Function: `.logLH()`
+#'
 #' Calculate log likelihood for binomial logistic type of regression data
 #' Take X, beta, and binary Y,  calculate log likelihood
 #' 

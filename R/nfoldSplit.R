@@ -1,3 +1,9 @@
+#' Inner Function: `.nfoldSplit()`
+#' 
+#' Randomly split data into n folds, can be stratified within each category if necessary
+
+
+
 #' @noRd
 #' @param Y A numeric vector.
 #' @param X.id A vector.

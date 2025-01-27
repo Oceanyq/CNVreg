@@ -1,3 +1,12 @@
+#' Function `prep()` and inner dependent functions.
+
+
+#dependent functions
+#' Y and Z have the same samples
+#' CNV can show on part of all samples
+#' The function will order the sample according to id
+#'  and matches the order in CNV, Z and Y
+
 #' @noRd
 #' @param CNV A data.frame in PLINK format. Specifically, must contain
 #' columns: 
@@ -24,6 +33,8 @@
 #'   
 #' @importFrom stats model.matrix
 #' @keywords internal
+#' 
+
 .orderData <- function(CNV, Z, Y) {
   
   stopifnot(
@@ -75,18 +86,21 @@
   
 }
 
+#' Process CNV region with continuous fragments, build wide data shape, remove rare, 
+#' build weight matrix 
 #' @noRd
 #' @param cnv.long CNV data converted to long format
 #' @param n.samples Number of samples in dataset
 #' @param rare.out Allowed range for rare events
 #' @param type The type of CNV event (del/dup)
 
+
 .internalStep1 <- function(cnv.long, n.samples, rare.out, type) {
   
   # A sparseMatrix of dimension n x n_fragments, where n is the number
   # of unique participant IDs of the del/dup type
   wide_raw_sum <- .wideDataRaw(cnv.long = cnv.long)
-  
+  #wide.raw = wide_raw_sum; sample.size = n.samples; rare.out = rare.out
   freqs <- .wideFrequency(wide.raw = wide_raw_sum, 
                           sample.size = n.samples, 
                           rare.out = rare.out)
@@ -95,6 +109,7 @@
   wide_common_data <- wide_raw_sum[, freqs$not.rare.idx, drop = FALSE]
   colnames(wide_common_data) <- paste0(type, colnames(wide_common_data))
   
+  #wide.data = wide_raw_sum; not.rare.idx = freqs$not.rare.idx; freq = freqs$freq
   weight_deldup <- .weightMatrix(wide.data = wide_raw_sum, 
                                  not.rare.idx = freqs$not.rare.idx, 
                                  freq = freqs$freq)
@@ -103,6 +118,7 @@
   weight_deldup
 }
 
+# combine Matrices of different CNVR
 .mergeMatrices <- function(old, new) {
   
   dimnames <- list(union(rownames(old), rownames(new)), 
@@ -119,10 +135,15 @@
   mrg_wide
 }
 
-#' Preprocess CNV, Covariate, and Outcome Data into Package Format
-#'
-#' Converts CNV in Plink format into fragments, filters out rare CNV events,
-#'   aligns data objects, and creates weight matrices.
+
+
+
+#' 
+#'  Function `prep()` converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
+#'  Function `prep()` analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
+#'  Function `prep()` formats data into WTSMTH format for regression analysis.
+#' 
+
 #'
 #' @param CNV A data.frame in PLINK format. Specifically, must contain
 #' columns: 
@@ -202,14 +223,14 @@ prep <- function(CNV, Y, Z = NULL, rare.out = 0.05) {
   
   cnv_long <- cnv_long_form$long.cnv
   grid_info <- cnv_long_form$grid.info
-  
+  #deldup_i ="del"
   for (deldup_i in c("del", "dup")) {
     
     tst <- cnv_long$deldup == deldup_i
     
     if (!any(tst)) next
-    
-    res <- .internalStep1(cnv_long[tst, ], n.samples = n_samples, 
+    #cnv.long =cnv_long[tst, ]; n.samples = n_samples; rare.out = rare.out; type = deldup_i
+    res <- .internalStep1(cnv.long = cnv_long[tst, ], n.samples = n_samples, 
                           rare.out = rare.out, type = deldup_i)
     
     wide_deldup <- .mergeMatrices(wide_deldup, res$wide.data)
@@ -224,8 +245,8 @@ prep <- function(CNV, Y, Z = NULL, rare.out = 0.05) {
   wide_deldup <- wide_deldup[ , colnames(wide_deldup) != "mid"]
   
   res <- list("design" = wide_deldup,
-              "Z" = Matrix::Matrix(ordered_data$Z, sparse = TRUE),
-              "Y" = ordered_data$Y,
+              "Z" = Matrix::Matrix(ordered_data$Z[ , , drop = FALSE ], sparse = TRUE),
+              "Y" = ordered_data$Y |> drop(),
               "weight.structure" = weight_any,
               "weight.options" = weight_options,
               "CNVR.info" = CNVRinfo)

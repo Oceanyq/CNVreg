@@ -1,4 +1,6 @@
-#' Take X and beta, calculate linear combination of X%*%beta,
+#' Inner Function: `.linearPred()`
+#' 
+#' Take X and beta, calculate linear combination of X%*%beta, beta has intercept
 #' 
 #' @noRd
 #' @param X A Matrix object with dimension n \times p

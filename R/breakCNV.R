@@ -1,5 +1,12 @@
-#' Use CNV BP1 and BP2 to construct grid
+#' Inner Function `.breakCNV()` and the dependent functions
 #' 
+#' Use CNV breakpoints (BP1 and BP2) on the same chromosome to construct CNV fragments/grids.
+#' Process CNV data in PLINK format 1 chromosome at a time using some dependent functions. 
+
+
+
+#' Create CNV fragments (grids) and define the boundary of each fragment.
+#'  
 #' @noRd
 #' @param CNV A data.frame in PLINK format. Specifically, must contain
 #' columns: 
@@ -7,8 +14,8 @@
 #'   \item "ID": character, unique identity for each sample
 #'   \item "CHR": integer, range 1-22
 #'   \item "BP1": integer, CNV event starting position
-#'   \item "BP2": integer, CNV event ending position, each rewcsd must have BP1 <= BP2, CNV at least 1bp(or other unit length)
-#'   \item "TYPE": integer, range 0,1, 3,4, and larger allowed, 2(is not allowed)
+#'   \item "BP2": integer, CNV event ending position, each record must have BP1 <= BP2, i.e., data at least 1bp (or data can be other unit length)
+#'   \item "TYPE": integer, range 0, 1, 3, 4, and larger allowed, 2 is not allowed.
 #'   }
 #'
 #' @returns A list object containing
@@ -17,6 +24,7 @@
 #'   \item{lower.boundary}{An integer vector of the lower boundary of each grid}
 #'   \item{upper.boundary}{An integer vector of the upper boundary of each grid}
 #' @keywords internal
+#' 
 .createGrid <- function(CNV) {
   
   # Identify boundaries of all grid units
@@ -32,7 +40,9 @@
   ITV_info
 }
 
-#' Construct matrix linking CNV BP1/BP2 to units of the grid
+#'
+#'  Construct a long-shaped matrix linking CNV BP1/BP2 to units of the fragments(grid),
+#'  One record of CNV can match to >=1 grid(s).
 #'
 #' @noRd
 #' @param CNV A data.frame in PLINK format. Specifically, must contain
@@ -41,8 +51,8 @@
 #'   \item "ID": character, unique identity for each sample
 #'   \item "CHR": integer, range 1-22
 #'   \item "BP1": integer, CNV event starting position
-#'   \item "BP2": integer, CNV event ending position, each rewcsd must have BP1 <= BP2, CNV at least 1bp(or other unit length)
-#'   \item "TYPE": integer, range 0,1, 3,4, and larger allowed, 2(is not allowed)
+#'   \item "BP2": integer, CNV event ending position, each record must have BP1 <= BP2, i.e., data at least 1bp (or data can be other unit length)
+#'   \item "TYPE": integer, range 0, 1, 3, 4, and larger allowed, 2 is not allowed.
 #'   }
 #' @param grid A list object containing the grid details
 #' \itemize{
@@ -84,10 +94,10 @@
   
   long <- long[!duplicated(long), ]
   
-  long[order(long$grid.id), ]
+  long[order(long$deldup, long$grid.id), ]
 }
 
-#' Convert CNV Records to Grid
+#' Convert CNV Records to Grids/fragments
 #'
 #' @noRd
 #' @param CNV A data.frame in PLINK format. Specifically, must contain
@@ -96,8 +106,8 @@
 #'   \item "ID": character, unique identity for each sample
 #'   \item "CHR": integer, range 1-22
 #'   \item "BP1": integer, CNV event starting position
-#'   \item "BP2": integer, CNV event ending position, each rewcsd must have BP1 <= BP2, CNV at least 1bp(or other unit length)
-#'   \item "TYPE": integer, range 0,1, 3,4, and larger allowed, 2(is not allowed)
+#'   \item "BP2": integer, CNV event ending position,  each record must have BP1 <= BP2, i.e., data at least 1bp (or data can be other unit length)
+#'   \item "TYPE": integer, range 0, 1, 3, 4, and larger allowed, 2 is not allowed.
 #'   }
 #'   
 #' @returns A list object with elements
@@ -122,6 +132,10 @@
 #' 
 #' @include helpful_tests.R
 #' @keywords internal
+#' 
+#' 
+#' Construct CNV fragments for CNVs in PLINK format, spread CNV records to a long table,
+#' and output the long-shaped data.frame for all CNV fragments and the fragment boundary information. 
 .breakCNV <- function(CNV) {
   
   stopifnot(

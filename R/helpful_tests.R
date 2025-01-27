@@ -1,3 +1,5 @@
+#' Inner functions to test data format meets requirements.
+#' 
 #' Test if provided object is a numeric vector of specified length
 #'
 #' @noRd
@@ -95,13 +97,13 @@
   if (!is.vector(CNV$BP1, mode = "numeric") || !all(CNV$BP1 >= 0L)) {
       #||
       #!isTRUE(all.equal(CNV$BP1, round(CNV$BP1)))) {
-    stop("`CNV$BP1 must contain non-negative integers", call. = FALSE)
+    stop("`CNV$BP1 must contain non-negative numbers", call. = FALSE)
   }
   
   if (!is.vector(CNV$BP2, mode = "numeric") || !all(CNV$BP2 >= 0L)){
       #||
       #!isTRUE(all.equal(CNV$BP2, round(CNV$BP2)))) {
-    stop("`CNV$BP2 must contain non-negative integers", call. = FALSE)
+    stop("`CNV$BP2 must contain non-negative numbers", call. = FALSE)
   }
   
   if (any(CNV$BP1 > CNV$BP2)) {
