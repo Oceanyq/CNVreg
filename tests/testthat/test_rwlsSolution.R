@@ -18,8 +18,8 @@ data$weight.options[] <- withr::with_seed(3245, rnorm(length(data$weight.options
 
 test_that("`rwlsSolution()` returns expected errors", {
   
-  expect_error(.rwlsSolution(), "`data` must be a 'WTsth.data' object")
-  expect_error(.rwlsSolution(data), "`data` must be a 'WTsth.data' object")
+  expect_error(.rwlsSolution(), "`data` must be a 'WTsth.data' object expanded with weight")
+  expect_error(.rwlsSolution(data), "`data` must be a 'WTsth.data' object expanded with weight")
   data <- .expandWTsmth(data, "keql")
   
   expect_error(.rwlsSolution(data, lambda1 = 1:10),
@@ -40,6 +40,8 @@ test_that("`.rwlsSolution()` returns expected results", {
   
   data <- .expandWTsmth(data, "keql")
   lambda1 <- 1e-2
+  
+  # test the initial step
   iter.control <- list("max.iter" = 0L, "tol.beta" = 1e-4, "tol.loss" = 1e-2)
   
   ZN = nrow(data$XZ)

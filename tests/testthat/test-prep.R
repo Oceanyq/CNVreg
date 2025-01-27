@@ -214,7 +214,7 @@ test_that("prep works as expected", {
   
   res <- list("design" = out_wide_deldup,
               "Z" = as(ordered_data$Z, "sparseMatrix"),
-              "Y" = ordered_data$Y,
+              "Y" = ordered_data$Y[, "Y"] |> drop(),
               "weight.structure" = weight_any,
               "weight.options" = weight_options,
               "CNVR.info" = CNVRinfo)
@@ -284,7 +284,7 @@ test_that("prep works as expected without Z", {
   
   res <- list("design" = out_wide_deldup,
               "Z" = as(ordered_data$Z, "sparseMatrix"),
-              "Y" = ordered_data$Y,
+              "Y" = ordered_data$Y[, "Y"] |> drop(),
               "weight.structure" = weight_any,
               "weight.options" = weight_options,
               "CNVR.info" = CNVRinfo)

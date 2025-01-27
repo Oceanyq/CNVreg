@@ -78,7 +78,7 @@ test_that("`fit_WTSMTH()` returns expected results", {
 })
 
 test_that("`fit_WTSMTH()` mismatched family", {
-  expect_error(fit_WTSMTH(data, 2, 2, family = "binomial", 
+  expect_error(fit_WTSMTH(data, 2, 2, family = "binomial", weight = "eql",
                           iter.control = list("max.iter" = 10, "tol.beta" = 1e-4, "tol.loss" = 1e-3)),
                "Y is not integer-like")
 })
@@ -86,31 +86,37 @@ test_that("`fit_WTSMTH()` mismatched family", {
 test_that("`fitWTSMTH()` returns expected results", {
 
   lambda2 <- 2
-  lambda1 <- 2.5
+  lambda1 <- (-2.5)
   iter.control <- .testIterControl(list("max.iter" = 10, 
                                         "tol.beta" = 1e-4, 
                                         "tol.loss" = 1e-3))  
   data2 <- .expandWTsmth(data, weight = 'eql')
-    
+  data2$XZ_update <- cbind(1.0, data2$XZ)
+  data2$Y_update <- data2$Y
   X_app <- cbind(0.0, 2.0 * data2$A)
   rownames(X_app) <- rownames(data2$A)
   Y_app <- rep.int(0L, nrow(data2$A))
   names(Y_app) <- rownames(data2$A)
-    
-  expected <- .ctnsSolution(data = data2, X.app = X_app, Y.app = Y_app, lambda1 = lambda1)
-
-  expect_equal(fit_WTSMTH(data, 2, 2, weight = "eql",
+  
+  expected <- .ctnsSolution(data = data2, X.app = X_app, Y.app = Y_app, lambda1 = lambda1) |> as.numeric()
+ 
+  expect_equal(fit_WTSMTH(data, -2.5, 2, weight = "eql",
                           family = "gaussian",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
-                                              "tol.loss" = 1e-3)), 
+                                              "tol.loss" = 1e-3))[,"coef"]|> as.numeric(), 
                expected)
   
-  expect_equal(fit_WTSMTH(data2, 2, 2,
+ 
+ expected <- data.frame(Vnames= c("(Intercept)", colnames(data$design), colnames(data$Z)),
+                        coef=expected)
+ row.names(expected) <- NULL
+  
+  expect_equal(fit_WTSMTH(data2, -2.5, 2, 
                           family = "gaussian",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
-                                              "tol.loss" = 1e-3)), 
+                                              "tol.loss" = 1e-3))[ ,c("Vnames", "coef")], 
                expected)
 })
 
@@ -123,7 +129,7 @@ test_that("`fitWTSMTH()` returns expected results", {
   
   
   lambda2 <- 2
-  lambda1 <- 2.5
+  lambda1 <- (-2.5)
   iter.control <- .testIterControl(list("max.iter" = 10, 
                                         "tol.beta" = 1e-4, 
                                         "tol.loss" = 1e-3))  
@@ -139,17 +145,21 @@ test_that("`fitWTSMTH()` returns expected results", {
                             lambda1 = lambda1,
                             iter.control = iter.control)
   
-  expect_equal(fit_WTSMTH(data2, 2, 2, 
+  expected <- data.frame(Vnames= c("(Intercept)", colnames(data$design), colnames(data$Z)),
+                         coef=expected)
+  row.names(expected) <- NULL
+  
+  expect_equal(fit_WTSMTH(data2, -2.5, 2, 
                           family = "binomial",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
-                                              "tol.loss" = 1e-3)), 
+                                              "tol.loss" = 1e-3))[, c("Vnames","coef")], 
                expected)
-  expect_equal(fit_WTSMTH(prep(cnv, Y, Z, rare.out = 0.03), 2, 2, weight = "eql",
+  expect_equal(fit_WTSMTH(prep(cnv, Y, Z, rare.out = 0.03), -2.5, 2, weight = "eql",
                           family = "binomial",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
-                                              "tol.loss" = 1e-3)), 
+                                              "tol.loss" = 1e-3))[, c("Vnames","coef")], 
                expected)
 })
 
@@ -161,7 +171,7 @@ test_that("`fitWTSMTH()` returns expected results", {
   
   
   lambda2 <- 2
-  lambda1 <- 2.5
+  lambda1 <- (-2.5)
   iter.control <- .testIterControl(list("max.iter" = 10, 
                                         "tol.beta" = 1e-4, 
                                         "tol.loss" = 1e-3))  
@@ -179,22 +189,26 @@ test_that("`fitWTSMTH()` returns expected results", {
                             X.app = X_app, Y.app = Y_app, 
                             lambda1 = lambda1,
                             iter.control = iter.control)
+  expected <- data.frame(Vnames= c("(Intercept)", colnames(data$design), colnames(data$Z)),
+                         coef=expected)
+  row.names(expected) <- NULL
+  
 
   data2 <- prep(cnv, Y, Z, rare.out = 0.03)
   data2 <- .expandWTsmth(data2, weight = 'eql')
   
-  expect_equal(fit_WTSMTH(data2, 2, 2, 
+  expect_equal(fit_WTSMTH(data2, -2.5, 2, 
                           family = "binomial",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
                                               "tol.loss" = 1e-3),
-                          subset = c(1:16,18, 19)), 
+                          subset = c(1:16,18, 19))[, c("Vnames","coef")], 
                expected)
-  expect_equal(fit_WTSMTH(prep(cnv, Y, Z, rare.out = 0.03), 2, 2, weight = "eql",
+  expect_equal(fit_WTSMTH(prep(cnv, Y, Z, rare.out = 0.03), -2.5, 2, weight = "eql",
                           family = "binomial",
                           iter.control = list("max.iter" = 10, 
                                               "tol.beta" = 1e-4, 
                                               "tol.loss" = 1e-3),
-                          subset = c(1:16,18, 19)), 
+                          subset = c(1:16,18, 19))[, c("Vnames","coef")], 
                expected)
 })

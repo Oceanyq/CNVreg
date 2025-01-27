@@ -1,6 +1,7 @@
 withr::with_seed(1234L, {
   X <- Matrix::Matrix(rnorm(100L), 100L, 1L, dimnames = list(NULL, "X1"))
-  Y <- stats::rbinom(100L, 1L, 0.5)
+  Y <- rnorm(100L, 2L, 0.5)
+  Y_BT <- stats::rbinom(100L, 1L, 0.5) 
   beta <- stats::runif(2L)
 })
 
@@ -10,16 +11,16 @@ test_that("`.loss` returns expected errors", {
   
   X <- matrix(1.0, 10L, 10L)
   expect_error(.loss(X),
-               "`Y` must be a numeric vector")
+               "`Y` must be a numeric vector with matching sample size")
   
   expect_error(.loss(X, matrix(0.0, 1L, 10L)),
-               "`Y` must be a numeric vector")
+               "`Y` must be a numeric vector with matching sample size")
   
   expect_error(.loss(X, numeric(9L)),
-               "`Y` must be a numeric vector")
+               "`Y` must be a numeric vector with matching sample size")
   
   expect_error(.loss(X, numeric(11L)),
-               "`Y` must be a numeric vector")
+               "`Y` must be a numeric vector with matching sample size")
   
   Y <- numeric(10L)
   
@@ -54,7 +55,7 @@ test_that("`.loss()` returns expected results with family = gaussian", {
 
 test_that("`.loss()` returns expected results with family = binomial", {
   # we've already tested LogLH  
-  expected <- .logLH(X = X, Y = Y, beta = beta)
+  expected <- (-1)*.logLH(X = X, Y = Y_BT, beta = beta)/nrow(X)
   
-  expect_equal(.loss(X, Y, beta, "binomial"), expected)
+  expect_equal(.loss(X, Y_BT, beta, "binomial"), expected)
 })

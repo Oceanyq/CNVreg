@@ -11,7 +11,7 @@ test_that("`.linearPred()` returns expected errors", {
                                       "x4" = rep(1L,10L)),
                            vector(mode = "numeric", length = 6)),
                "`X` must be a Matrix with at least 1 column")
-  expect_error(.linearPred(matrix("1", 10L, 5L),
+  expect_error(.linearPred(X = matrix("1", 10L, 5L),
                            vector(mode = "numeric", length = 6)),
                "`X` must be a Matrix with at least 1 column")
   

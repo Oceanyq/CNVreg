@@ -94,12 +94,12 @@ test_that("`.isCNV returns expected errors", {
   # trigger integer vector test
   expect_error(.isCNV(data.frame("ID"= 1L:10L,
                                  "CHR"= rep(22L, 10L),
-                                 "BP1"= as.numeric(seq(1L, 20L, 2L)) + 0.1,
+                                 "BP1"= as.numeric(seq(1L, 20L, 2L)) -3.1,
                                  "BP2"= seq(2L, 20L, 2L),
                                  "TYPE"= c(0L, 0L, 1L, 1L,
                                            0L, 3L, 3L, 3L,
                                            4L, 4L))),
-               "`CNV$BP1 must contain non-negative integers",
+               "`CNV$BP1 must contain non-negative numbers",
                fixed = TRUE)
   # trigger all > 0 test
   expect_error(.isCNV(data.frame("ID"= 1L:10L,
@@ -109,21 +109,21 @@ test_that("`.isCNV returns expected errors", {
                                  "TYPE"= c(0L, 0L, 1L, 1L,
                                            0L, 3L, 3L, 3L,
                                            4L, 4L))),
-               "`CNV$BP1 must contain non-negative integers",
+               "`CNV$BP1 must contain non-negative numbers",
                fixed = TRUE)
   
-  # "`CNV$BP2 must contain non-negative integers"=
+  # "`CNV$BP2 must contain non-negative numbers"=
   #      is.vector(CNV$BP2, mode = "integer") &&
   #      all(CNV$BP2 >= 0L),
   # trigger integer vector test
   expect_error(.isCNV(data.frame("ID"= 1L:10L,
                                  "CHR"= rep(22L, 10L),
                                  "BP1"= seq(1L, 20L, 2L),
-                                 "BP2"= as.numeric(seq(2L, 20L, 2L)) + 0.1,
+                                 "BP2"= as.numeric(seq(2L, 20L, 2L)) -2.1,
                                  "TYPE"= c(0L, 0L, 1L, 1L,
                                            0L, 3L, 3L, 3L,
                                            4L, 4L))),
-               "`CNV$BP2 must contain non-negative integers",
+               "`CNV$BP2 must contain non-negative numbers",
                fixed = TRUE)
   
   # trigger all > 0 test
@@ -134,7 +134,7 @@ test_that("`.isCNV returns expected errors", {
                                  "TYPE"= c(0L, 0L, 1L, 1L,
                                            0L, 3L, 3L, 3L,
                                            4L, 4L))),
-               "`CNV$BP2 must contain non-negative integers",
+               "`CNV$BP2 must contain non-negative numbers",
                fixed = TRUE)
   
   #  "`CNV$BP2 must be great than CNV$BP1 for all records"=

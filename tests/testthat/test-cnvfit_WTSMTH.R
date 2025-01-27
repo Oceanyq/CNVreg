@@ -18,11 +18,11 @@ data <- prep(cnv, Y, Z, rare.out = 0.03)
 test_that("`cvfit_WTSMTH()` returns expected errors", {
   
   expect_error(cvfit_WTSMTH(),
-               "`data` must be a 'WTsmth.data' object")
+               "`data` must be a `WTsmth.data` object")
   expect_error(cvfit_WTSMTH(NULL),
-               "`data` must be a 'WTsmth.data' object")
+               "`data` must be a `WTsmth.data` object")
   expect_error(cvfit_WTSMTH(unclass(data)),
-               "`data` must be a 'WTsmth.data' object")
+               "`data` must be a `WTsmth.data` object")
   
   expect_error(cvfit_WTSMTH(data),
                "`lambda1 must be a numeric vector")
@@ -71,7 +71,7 @@ test_that("`cvfit_WTSMTH()` returns expected errors", {
 
 test_that("`cvfit_WTSMTH()` returns expected results", {
   
-  lambda1 <- c(1.5, 2.5)
+  lambda1 <- c(-2.5, -1.5)
   lambda2 <- c(2, 3)
   
   iter.control <- .testIterControl(list(max.iter = 8L, 
@@ -110,16 +110,18 @@ test_that("`cvfit_WTSMTH()` returns expected results", {
                                family = "gaussian", 
                                iter.control = iter.control,
                                subset = subset)
+      head(beta_lmd21)
     
       loss <- .loss(X = data2$XZ[!subset, ], 
                     Y = data2$Y[!subset], 
-                    beta = beta_lmd21, 
+                    beta = beta_lmd21$coef, 
                     family = "gaussian")
+      
     
-      loss_matrix[idx[i,2L], idx[i, 3L]] <- loss_matrix[idx[i,2L], idx[i, 3L]] +
-        loss / 3.0
+      loss_matrix[idx[i,2L], idx[i, 3L]] <- loss_matrix[idx[i,2L], idx[i, 3L]] + loss / 3.0
     }
-  
+    
+    
     min_value <- Inf
     for (i in 1L:2L) {
       for (j in 1L:2L) {
@@ -135,9 +137,15 @@ test_that("`cvfit_WTSMTH()` returns expected results", {
                             lambda2 = lambda2[use[2L]],
                             family = "gaussian", 
                             iter.control = iter.control)
+    
+    loss_matrix <- loss_matrix |> t() |> data.frame()
+    
+    colnames(loss_matrix) <- lambda1
+    loss_matrix$lambda2 <- lambda2
   
-    expected <- list("selected.lambda" = c(lambda1[use[1L]], lambda2[use[2L]]),
-         "coef" = beta_y_cv)
+    expected <-  list("Loss" = loss_matrix[, c(3,1,2)],
+                      "selected.lambda" = c(lambda1[use[1L]], lambda2[use[2L]]),
+                      "coef" = beta_y_cv)
   })
   
   expect_equal(withr::with_seed(
@@ -145,7 +153,7 @@ test_that("`cvfit_WTSMTH()` returns expected results", {
     cvfit_WTSMTH(data, lambda1, lambda2, "keql",
                  family = "gaussian", 
                  cv.control = list(n.fold = 3L, 
-                                   n.core = 2L, 
+                                   n.core = 1L, 
                                    stratified = FALSE),
                  iter.control = list(max.iter = 8L, 
                                      tol.beta = 10^(-3), 
