@@ -1,14 +1,15 @@
 Package: CNVreg
 Type: Package
-Title: CNV Penalized regression
-Version: 0.1
+Title: Copy Number Variants Association Analysis with Penalized Regression 
+Version: 1.0
 Authors@R: c(person("Yaqin", "Si",email = "ysi4@ncsu.edu", role = c("aut")), 
              person("Shannon T.", "Holloway",email = "shannon.t.holloway@gmail.com", role = c("ctb", "cre")),
              person("Jung-Ying", "Tzeng",email = "jytzeng@ncsu.edu", role = c("ctb")))
-Description: We need a short but informative description.
+Description: Copy number variants association analysis with Lasso and Weighted Fusion penalized regression. 
 License: GPL-3
 Depends: R (>= 3.5.0)
-Imports: stats, Matrix, doParallel, dplyr, foreach, glmnet
+VignetteBuilder: knitr
+Imports: stats, Matrix, doParallel, dplyr, foreach, glmnet, tidyr
 Encoding: UTF-8
 NeedsCompilation: no
 LazyData: true
@@ -29,6 +30,7 @@ Collate:
     'nfoldSplit.R'
     'WTsmth_nFold_CV.R'
     'breakCNV.R'
+    'datadescrip.R'
     'wideDataRaw.R'
     'wideFrequency.R'
     'weightMatrix.R'
