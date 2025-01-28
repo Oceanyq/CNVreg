@@ -2,9 +2,11 @@
 % Please edit documentation in R/prep.R
 \name{prep}
 \alias{prep}
-\title{Preprocess CNV, Covariate, and Outcome Data into Package Format}
+\title{Function `prep()` converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
+ Function `prep()` analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
+ Function `prep()` formats data into WTSMTH format for regression analysis.}
 \usage{
-prep(CNV, Z, Y, rare.out = 0.05)
+prep(CNV, Y, Z = NULL, rare.out = 0.05)
 }
 \arguments{
 \item{CNV}{A data.frame in PLINK format. Specifically, must contain
@@ -19,15 +21,15 @@ columns:
        2 is not allowed.
   }}
 
-\item{Z}{A data.frame. Must include column "ID". All other columns are covariates,
-which can be continuous, binary, or categorical variables. At a minimum, 
-Z must contain all unique CNV$ID values.}
-
 \item{Y}{A data.frame. Must include column "ID". Must have 2 columns. For binary,
 values must be 0 (control) or 1 (case). For continuous, values must be 
 real. Y$ID must contain all Z$ID.}
 
-\item{rare.out}{A scalar numeric in (0, 0.5) event rates below which are
+\item{Z}{A data.frame. Must include column "ID". All other columns are covariates,
+which can be continuous, binary, or categorical variables. At a minimum, 
+Z must contain all unique CNV$ID values.}
+
+\item{rare.out}{A scalar numeric in (0, 0.5); event rates below this value are
 filtered out of the data.}
 }
 \value{
@@ -46,11 +48,32 @@ An S3 object of class "WTsmth.data" extending a list object containing
 }
 }
 \description{
-Converts CNV in Plink format into fragments, filters out rare CNV events,
-  aligns data objects, and creates weight matrices.
+Function `prep()` converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
+ Function `prep()` analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
+ Function `prep()` formats data into WTSMTH format for regression analysis.
 }
 \examples{
-# example code
+# Note that the example data set is smaller than actual CNV data to accommodate a fast example.
+# Real data analysis would take a little bit longer time to run. 
+
+# load provided illustrative toy dataset with a continuous outcome and a binary outcome
+library("CNVreg")
+data("CNVCOVY")
+#prepare data format for regression analysis
+
+## first try with the continuous outcome Y_QT
+frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
+
+## Second, to prepare for the binary outcome Y_BT,
+# We can directly replace frag_data$Y with Y_BT in the correct format.
+
+rownames(Y_BT) <- Y_BT$ID
+
+frag_data$Y <- Y_BT$Y[names(frag_data$Y), ] |> drop()
+
+# Or, we can also repeat the procedure using prep() function 
+# frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
+
 
 }
 \keyword{internal}
