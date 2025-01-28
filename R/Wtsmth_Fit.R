@@ -32,6 +32,40 @@
 #' @include ctnsSolution.R helpful_tests.R rwlsSolution.R utils.R
 #'
 #' @export
+#' 
+#' @examples
+#' # Note that the example data set is smaller than actual CNV data to accommodate a fast example.
+#' # Real data analysis would take a little bit longer time to run. 
+#' 
+#' # load provided illustrative toy dataset with a continuous outcome and a binary outcome
+#' library("CNVreg")
+#' data("CNVCOVY")
+#' #prepare data format for regression analysis
+#' 
+#' ## first try with the continuous outcome Y_QT
+#' frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
+#' QT_fit <- fit_WTSMTH(frag_data, 
+#'                         lambda1 =-5, 
+#'                         lambda2 = 21, 
+#'                         weight="eql", 
+#'                         family="gaussian")
+#'                         
+#' ## Second, to prepare for the binary outcome Y_BT,
+#' # We can directly replace frag_data$Y with Y_BT in the correct format.
+#' 
+#' rownames(Y_BT) <- Y_BT$ID
+#' 
+#' frag_data$Y <- Y_BT$Y[names(frag_data$Y), ] |> drop()
+#' 
+#' # Or, we can also repeat the procedure using prep() function 
+#' # frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
+#' BT_fit <- fit_WTSMTH(frag_data, 
+#'                         lambda1 = -5, 
+#'                         lambda2 = 6, 
+#'                         weight="eql",
+#'                         family="binomial")
+
+
 fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
                        family = c("gaussian", "binomial"), 
                        iter.control = list(max.iter = 8L, 

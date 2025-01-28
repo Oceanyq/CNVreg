@@ -178,9 +178,28 @@
 #'  \item \code{CNVR.info} A data.frame containing details about the fragment
 #'    structure.
 #' }
-#' 
 #' @examples
-#' # example code
+#' # Note that the example data set is smaller than actual CNV data to accommodate a fast example.
+#' # Real data analysis would take a little bit longer time to run. 
+#' 
+#' # load provided illustrative toy dataset with a continuous outcome and a binary outcome
+#' library("CNVreg")
+#' data("CNVCOVY")
+#' #prepare data format for regression analysis
+#' 
+#' ## first try with the continuous outcome Y_QT
+#' frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
+#' 
+#' ## Second, to prepare for the binary outcome Y_BT,
+#' # We can directly replace frag_data$Y with Y_BT in the correct format.
+#' 
+#' rownames(Y_BT) <- Y_BT$ID
+#' 
+#' frag_data$Y <- Y_BT$Y[names(frag_data$Y), ] |> drop()
+#' 
+#' # Or, we can also repeat the procedure using prep() function 
+#' # frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
+#' 
 #' 
 #' @include breakCNV.R weightMatrix.R wideDataRaw.R wideFrequency.R
 #' @import Matrix
