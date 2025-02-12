@@ -18,4 +18,4 @@ This package has 3 main functions:
 
 
 We have a more detailed tutorial for all functions using an example data included in the `CNVreg` package. 
-Please see the <a href="docs/CNVreg_tutorial"> **CNVreg** tutorial </a> for detailed usage of the CNVreg package.
+Please see the <a href="docs/CNVreg_tutorial.html"> **CNVreg** tutorial </a> for detailed usage of the CNVreg package.
