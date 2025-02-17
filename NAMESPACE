@@ -2,6 +2,7 @@
 
 export(cvfit_WTSMTH)
 export(fit_WTSMTH)
+export(prep)
 import(Matrix)
 import(doParallel)
 import(dplyr)
