@@ -2,9 +2,7 @@
 % Please edit documentation in R/prep.R
 \name{prep}
 \alias{prep}
-\title{Function `prep()` converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
- Function `prep()` analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
- Function `prep()` formats data into WTSMTH format for regression analysis.}
+\title{Function `prep()`}
 \usage{
 prep(CNV, Y, Z = NULL, rare.out = 0.05)
 }
@@ -48,9 +46,12 @@ An S3 object of class "WTsmth.data" extending a list object containing
 }
 }
 \description{
-Function `prep()` converts an individual's CNV events within a genomic region to a CNV profile curve, further processes it as CNV fragments, and filter out rare fragments. 
- Function `prep()` analyzes the adjacency relationship between CNV fragments and prepares different options of weight matrices for the penalized regression analysis. 
- Function `prep()` formats data into WTSMTH format for regression analysis.
+Function `prep()` converts an individual's CNV events within a genomic 
+ region to a CNV profile curve, further processes it as CNV fragments, 
+ and filter out rare fragments. It analyzes the adjacency relationship 
+ between CNV fragments and prepares different options of weight matrices
+ for the penalized regression analysis. In addition, it 
+ formats data into `WTsmth.data` format for regression analysis.
 }
 \examples{
 # Note that the example data set is smaller than actual CNV data to accommodate a fast example.
@@ -68,8 +69,10 @@ frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
 # We can directly replace frag_data$Y with Y_BT in the correct format.
 
 rownames(Y_BT) <- Y_BT$ID
-
-frag_data$Y <- Y_BT$Y[names(frag_data$Y), ] |> drop()
+#
+##order the sample in Y_BT as in frag_data$Y and name it
+frag_data$Y <- Y_BT[names(frag_data$Y), "Y"] |> drop()
+names(frag_data$Y) <- rownames(frag_data$Z) 
 
 # Or, we can also repeat the procedure using prep() function 
 # frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
