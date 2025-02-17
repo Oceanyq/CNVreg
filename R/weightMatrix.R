@@ -92,7 +92,7 @@
     }
     
     CNVR_id = CNVR_id + 1L
-    print(CNVR_id)
+    #print(CNVR_id)
     not.rare.idx <- not.rare.idx[-(seq_s:seq_e)]
     
   }

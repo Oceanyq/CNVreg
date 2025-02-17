@@ -5,17 +5,17 @@
 #' @keywords datasets
 #' @aliases CNV Cov Y_QT Y_BT
 #' @name CNVCOVY
-#' @usage data('CNVCOVY')
+#' @usage data("CNVCOVY")
 #' @format CNVCOVY.RData provides 4 datasets: CNV, Cov, Y_QT, and Y_BT.
 #' 
 #' \itemize{
 #'   \item CNV. A data frame of 2680 CNV records, it has 5 variables:
 #'        \itemize{
 #'          \item ID. The sample ID of the CNV records in each row. There are 797 unique IDs.
-#'          \item CHR. One integer that indicates the chromosome number of CNV records.
-#'          \item BP1. A number, show the starting breakpoint of the CNV records. 
-#'          \item BP2. A number, show the ending breakpoint of the CNV records. 
-#'          \item TYPE. An integer variable, describe how many copies of the CNV present. 
+#'          \item CHR. An integer variable, the chromosome number of CNV records.
+#'          \item BP1. A numeric variable, the starting breakpoint of the CNV records. 
+#'          \item BP2. A numeric variable, the ending breakpoint of the CNV records. 
+#'          \item TYPE. An integer variable, how many copies of the CNV present. 
 #'        }
 #'   \item Cov. A data frame contains covariats of 900 samples 
 #'   (including 797 samples in the CNV data set).
