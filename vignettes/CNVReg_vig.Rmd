@@ -304,6 +304,7 @@ P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef*1000))+theme_b
     
 
 PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]*1000))+theme_bw()+ 
+  ylab("")+
   geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[2:5]) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
@@ -314,6 +315,7 @@ PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.en
   
 
 PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]*1000))+theme_bw()+ 
+  ylab("")+
   geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[11:14]*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
@@ -450,6 +452,7 @@ P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef*1000))+theme_b
     
 
 PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]*1000))+theme_bw()+ 
+  ylab("")+
   geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]*1000) > 0.001, "red", ifelse(abs(CNV_coef$coef[2:5]*1000) < 10^(-8), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
@@ -460,6 +463,7 @@ PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.en
   
 
 PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]*1000))+theme_bw()+ 
+  ylab("")+
   geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[11:14]*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
