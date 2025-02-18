@@ -37,7 +37,7 @@ library("patchwork")
 
 The *CNVreg* package provides functions to perform copy number variants (CNV) association analysis with penalized regression model. 
 
-This package convert CNVs over a genomic region as a piecewise constant curve to capture the dosage and length of CNVs. The association analysis is then evaluated by regressing outcome traits on all CNV fragments in the region while adjusting for covariates. The corresponding CNV effects are obtained at each genome position. The penalized regression model with Lasso and weighted fusion penalties would perform variable selection and encourage adjacent CNVs to share similar effect size.
+This package converts CNVs over a genomic region as a piecewise constant curve to capture the dosage and length of CNVs. The association analysis is then evaluated by regressing outcome traits on all CNV fragments in the region while adjusting for covariates. The corresponding CNV effects are obtained at each genome position. The penalized regression model with Lasso and weighted fusion penalties would perform variable selection and encourage adjacent CNVs to share similar effect size.
 
 This package has 3 main functions: 
 
@@ -58,8 +58,10 @@ The `CNVCOVY` dataset included in this package contains a small sample of data f
 
 
  * `CNV`: A data frame describing CNV data in PLINK format with 5 variables `ID`, `CHR`, `BP1`, `BP2`, and `TYPE`.
- * `Cov`: A data frame contains 3 variables: `ID`, `Sex`, and `Age`.
- * `Y_QT` and `Y_BT`: each is a data frame for outcomes traits. `Y_QT` contains a quantitative trait. `Y_BT` contains a binary trait. Both have 2 variables: `ID` and `Y`.
+ 
+ * `Cov`: A data frame with 3 variables: `ID`, `Sex`, and `Age`.
+ 
+ * `Y_QT` and `Y_BT`: each is a data frame for outcome traits. `Y_QT` contains a quantitative trait. `Y_BT` contains a binary trait. Both have 2 variables: `ID` and `Y`.
 
 Here is how you can load and view the summary of the datasets:
 
@@ -70,7 +72,7 @@ data("CNVCOVY", package="CNVreg")
 ```
 
 
-<details><summary>Here is the summary of each file in the dataset </summary>
+<details><summary>(click to unfold) Here is the summary of each file in the dataset </summary>
 ```{r}
 # view the dataset
 summary(CNV)
@@ -83,43 +85,91 @@ summary(Y_BT)
 Briefly, the dataset has the CNV (2680 records), covariates (`Sex` and `Age`), and outcome traits for 900 individuals. 
 
 
-## Data preprocessing
+## Data preprocessing: the `prep()` function {.tabset}
 
-The `prep()` function converts an individual's CNV events within a genomic region to fragments, and filter out rare events. It analyzes the adjacency relationship between CNV fragments and prepares different weight options for the penalized regression analysis. Here is how you can use the `prep()` function to preprocess `CNV`, `Cov` and a quantitative outcome `Y_QT`. You can replace `Y_QT` with a binary outcome `Y_BT` to prepare for a binary outcome regression.
+The `prep()` function converts an individual's CNV events within a genomic region to fragments, and filters out rare events. It analyzes the adjacency relationship between CNV fragments and prepares different weight options for the penalized regression analysis. Here is how you can use the `prep()` function to preprocess `CNV`, `Cov` and an outcome trait. The outcome trait can be a continuous trait `Y_QT` or a binary trait `Y_BT`. The syntax of the `prep()` command is the same for continuous and binary outcomes. 
+
+
+### Input of function `prep()`
+
+  The function `prep()` has 4 inputs. 
+  
+  * `CNV`: takes a data frame describing CNV in PLINK format with 5 variables: `ID`, `CHR`, `BP1`, `BP2`, and `TYPE`. 
+  
+  * `Y`: takes a data frame describing outcomes with 2 variables: `ID` and `Y`.
+  
+  * `Z`: takes a data frame describing covariates, if `Z` is provided, one variable must be `ID`, other variables can be any covariates of interest. 
+  
+  * `rare.out`: takes a number in [0, 0.5). A default value is 0.05, which excludes CNVs with frequency < $5\%$
+
+### Prepare data with a continuous outcome
      
 ```{r, warning=FALSE}
-# data preprocessing 
+# data preprocessing for a quantitative(continuous) outcome Y_QT
 frag_data_QT <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
 ```
 
+
 The result `frag_data_QT` is the output from the `prep()` function, which has a specially designed "WTsmth.data" format for easy application in the next step for CNV association analysis. It has 6 components.    
   
-  * `design`: the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments. 
+  * `design`: a matrix of the CNV fragments in n by p dimensions, where n is the number of samples and p is the total number of CNV fragments. Rownames are sample ID, and the order of rownames is the same as the rownames of the outcome file (`frag_data_QT$Y`). 
     
-  * `Z`: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcomes. 
+  * `Z`: a matrix of covariates with sample ID as rownames. The rownames are in the same order as in the outcome file (`frag_data_QT$Y`).
     
-  * `Y`: a matrix of 1 column with sample ID as rownames. The rownames are in the same order as in the covariates.
+  * `Y`: a matrix of 1 column with sample ID as rownames. The rownames are in the same order as in the CNV design matrix `frag_data_QT$design` and covariates `frag_data_QT$Z`.
     
-  * `weight.structure`: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while adjacent non-zero values represent two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
+  * `weight.structure`: a matrix that describes the adjacency structure of CNV fragments. The matrix is sparse and most values are zero, while non-zero values represent two adjacent CNV fragments that are overlapped by at least one CNV event in the population. 
     
-  * `weight.options`: we provide 6 different options of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight `eql`, Coscine-similarity based weight `wcs`, Inverse frequency weight `wif`, and these 3 weights further considering frequency of any CNV event (k) within each CNV-rich region ("keql", "kwcs", and "kwif").
+  * `weight.options`: we provide 6 different options of weights that encourage differential information sharing based on the relationship between adjacent CNV fragments. Equal weight `eql`, Cosine-similarity based weight `wcs`, Inverse frequency weight `wif`, and combining these 3 weights with the frequency (k) of any CNV events within each CNV-active region ("keql", "kwcs", and "kwif"). Refer to the user manual for more information.
              
-  * `CNVR.info` summarizes the positions of all CNV fragments and their adjacency information. Each row represents a CNV fragment and the fragment names match the column names in `design`.
+  * `CNVR.info` summarizes the positions of all CNV fragments and their adjacency information. Each row represents a CNV fragment and the fragment names match the column names in `frag_data_QT$design`.
 
 
-<details><summary> Here is a more detailed description of the output `frag_data_QT` </summary>
+<details><summary>(click to unfold) Here is a more detailed description of the output `frag_data_QT` </summary>
 ```{r}
 # Format of `prep()` funtion output
  str(frag_data_QT)
- 
 ```
 </details>
 
 
 
-## CNV association analysis with cross-validation
+### Prepare data with a binary outcome
 
-The `cvfit_WTSMTH()` function analyzes the association between a continuous/binary trait value and `CNV` while adjusting for the covariates `Cov`. Since we already have `Y_QT` prepared in the `prep()` step, we will fit a model to perform CNV association analysis for a continuous outcome first. 
+```{r, warning=FALSE}
+# data preprocessing with a binary trait
+frag_data_BT <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
+```
+
+The result `frag_data_BT` is the output from the `prep()` function with a binary trait, which has the same "WTsmth.data" format. It contains the same list in the continuous scenario as mentioned earlier: `design`, `Z`, `Y`, `weight.structure`, `weight.options`, and `CNVR.info`. 
+
+Here is an alternative way to prepare data when performing CNV association analysis with the same set of CNVs for multiple outcome traits. Since we have the same `CNV` data, `Cov` data, and a different outcome trait `Y_BT`, we can manually format `Y_BT` to match the format in `frag_data_QT$Y`. 
+
+<details><summary>(Click to unfold) Here we provide the command for reference. </summary>
+```{r}
+# It would be useful when we have large CNV data set and perform association analysis for multiple traits with the same set of CNV data. 
+
+## copy frag_data_QT
+#frag_data_BT <- frag_data_QT
+#
+### replace Y with Y_BT in the correct format: ordered named vector
+### order the sample in Y_BT as in frag_data_QT$Y
+#rownames(Y_BT) <- Y_BT$ID
+#
+#frag_data_BT$Y <- Y_BT[names(frag_data_QT$Y), "Y"] |> drop()
+#names(frag_data_QT$Y) <- rownames(frag_data_QT$Y) 
+
+## Directly replace frag_data_QT$Z is also possible, keep in mind to use the correct variable names and sample ID order.
+```
+</details>
+
+
+## CNV association analysis with cross-validation (CV) {.tabset}
+
+The `cvfit_WTSMTH()` function analyzes the association between a continuous/binary trait value and `CNV` while adjusting for the covariates `Cov`. 
+
+### CNV association analysis for a continuous outcome {.tabset}
+We already have `frag_data_QT` prepared in the `prep()` step. We can fit a model to perform CNV association analysis for a continuous outcome using CV to fine-tune tuning parameters and fit an optimal model with the selected parameters. 
   
  
 ```{r warning=FALSE}
@@ -132,36 +182,40 @@ The `cvfit_WTSMTH()` function analyzes the association between a continuous/bina
                            cv.control = list(n.fold = 5L, 
                                            n.core = 1L, 
                                            stratified = FALSE),
-                          verbose = FALSE)
+                           verbose = FALSE)
 ```
 
 
-The `cvfit_WTSMTH()` function takes the output of `prep()` function as one of the major inputs.
+#### Input of cvfit_WTSMTH()
 
-`lambda1` and `lambda2` takes the candidate tuning parameters that control variable selection (`lambda1`) and effect smoothness (`lambda2`)
+The `cvfit_WTSMTH()` function takes the output of `prep()` function as one of the major inputs, for example,  `frag_data_QT` prepared for the continuous trait and `frag_data_BT` prepared for the binary trait.
 
-`weight` has six different options as described earlier. Since we only have a small dataset, varying the `weight` options will not have much influence on the model fitting results. With real CNV data with different similarity patterns and CNV frequencies, varying the `weight` option are expected to have different effects.
+`lambda1` and `lambda2` take the candidate tuning parameters that control variable selection (`lambda1`) and effect smoothness (`lambda2`). Provided values will be transformed to 2^(`lambda1`) and 2^(`lambda2`). We provide default values for both vectors. The user can customize the range and step_size of the candidate tuning parameters. In most cases, the user will need to run the function more than one time to adjust the range and step_size of tuning parameters to locate to a reasonable range according to the previous round of model fitting.
+
+`weight` has six different options as described earlier. Since we only have a small dataset, varying the `weight` options will not have much influence on the model fitting results. In real CNV data with different similarity patterns and CNV frequencies, varying the `weight` option are expected to have different effects.
 
 `family` has two options: `gaussian` for a continuous outcome, and `binomial` for a binary outcome.
                            
-This function also supports parallel computing and change of n-folds in CV by adjust the `cv.control` list.
+This function also supports parallel computing and change of n-folds in CV by adjusting the `cv.control` list.
 
  * `n.fold` controls the number of folds used in CV.
  
  * `n.core` controls the the number of cores used in parallel computing.
  
- * `stratified` only has control for a binary outcome. We will skip it here and describe it later. 
+ * `stratified` only has control for a binary outcome. We will skip it here and describe it in the binary section. 
  
-If choose `verbose` = TRUE, it will print a message about what the program is currently working on. 
- 
+If choose `verbose` = TRUE, it will print a message about where the program is currently working on. 
+
+#### Output of cvfit_WTSMTH()
+
 The output of the `cvfit_WTSMTH()` function is a list object containing 3 elements: `Loss`,  `lambda.selected`, and `coef`.
 
 
 * `Loss`
 
-  The `Loss` keeps track of the average validation loss in CV for each pair of candidate tuning parameters $\lambda_{1}$ and $\lambda_{2}$.      In the following table, the minimum loss is highlighted and the corresponding $\lambda_{1}$ and $\lambda_{2}$ values are selected to fit a     final model.
+  The `Loss` keeps track of the average validation loss in CV for each pair of candidate tuning parameters $\lambda_{1}$ and $\lambda_{2}$. In the following table, the minimum loss is highlighted and the corresponding $\lambda_{1}$ and $\lambda_{2}$ values are selected to fit a final model.
    
-  In this simulated data, the variation of loss for different $\lambda_{2}$ with the same $\lambda_{1}$ is not very large. One reason is that    $\lambda_{2}$ controls the effect smoothness between adjacent CNVs, and the simulation data only has a small number of CNVs in adjacent that   share effects to other CNVs. The effect of changing $\lambda_{2}$ seems not prominence in this case. When we have more CNVs in adjacent and    share effects, it should have larger variance across $\lambda_{2}$.  
+  In this simulated data, the variation of loss for different $\lambda_{2}$ with the same $\lambda_{1}$ is not very large. One reason is that $\lambda_{2}$ controls the effect smoothness between adjacent CNVs, and the simulation data only has a small number of CNVs in adjacent that share effects to other CNVs. The effect of changing $\lambda_{2}$ seems not prominence in this case. When we have more CNVs in adjacent and share effects, it should have larger variance across $\lambda_{2}$.  
 
 ```{r echo=FALSE}
 # loss matrix of candidate tuning parameters
@@ -179,7 +233,7 @@ The output of the `cvfit_WTSMTH()` function is a list object containing 3 elemen
 
 * `selected.lambda`
 
-The `selected.lambda` are the optimal tuning parameters from the candidate lists that has the lowest loss, which can be confirmed with the `Loss` table.
+The `selected.lambda` is the optimal tuning parameters from the candidate lists that has the lowest loss, which can be confirmed with the `Loss` table.
 
 ```{r}
 # selected optimal tuning parameters with minimum loss
@@ -190,6 +244,7 @@ The `selected.lambda` are the optimal tuning parameters from the candidate lists
 
 The `coef` shows the estimated beta coefficients at the selected tuning parameters. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects. In this small example, we can print all coefficient estimate, but you can modify the code to show only non-zero ones.  
 
+<br>
 
 Here lists the coefficients for `(Intercept)` and covariates. The characteristics for CNV (CHR, CNV.start, CNV.end, and deldup) are left as `NA`s intentionally in the original output. Here we only show the effect estimate. 
 
@@ -198,17 +253,18 @@ Here lists the coefficients for `(Intercept)` and covariates. The characteristic
 QT_TUNE$coef[c(1, 21:22), c("Vnames", "coef") ] 
 ```
 
+<br>
 
 Here lists the coefficients for CNVs and the corresponding plots.
 
-We highlight the regions with adjacent CNVs. From the coefficient estimates, the model selectes several non-zero CNVs (data points) that are associated with the trait. Among the data points, the red ones have stronger effect than the black dots. The black dots are likely noise. 
+We highlight the regions with adjacent CNVs. From the coefficient estimates, the model selects several non-zero CNVs (data points). Among the data points, the red ones have stronger effect than the black dots. The black dots are likely noise. 
 
-We also zoom in to show the effect smoothness within the highlighted regions with adjacent CNVs. 
+We also zoom in on two highlighted regions with strong signals and adjacent CNVs to show the effect smoothness within the regions. 
 
 The results illustrate the variable selection and effect smoothness of the penalized regression method for CNV association analysis. 
 
 
-<details><summary>  CNV coefficient estimate of a fine-tuned model for a continuous outcome.</summary>   
+<details><summary>(Click to unfold) CNV coefficient estimate of a fine-tuned model for a continuous outcome.</summary>   
 ```{r}
 # estimated coefficents for CNV
 QT_TUNE$coef[2:20, ]
@@ -231,42 +287,40 @@ CNVR_adj <- CNVR[CNVR$nfrag > 1, ]
 CNV_coef <- QT_TUNE$coef[2:20,]
 
 
-P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef) > 0.001, "red", ifelse(abs(CNV_coef$coef) < 10^(-8), "white", "black")))) + 
+P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef*1000) > 1, "red", ifelse(abs(CNV_coef$coef*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("Genomic position", labels = as.character(CNVR_adj$CNV.start), breaks = CNVR_adj$CNV.start)+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start, xend=CNV_coef$CNV.end, y=CNV_coef$coef, yend=CNV_coef$coef)+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-1000000, xmax=CNVR_adj$CNV.end[1]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x = CNVR_adj$CNV.start[1], y = max(CNV_coef$coef) +0.0002, label = "A", color="red")+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[2]-1000000, xmax=CNVR_adj$CNV.end[2]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-1000000, xmax=CNVR_adj$CNV.end[3]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x = CNVR_adj$CNV.start[3], y = max(CNV_coef$coef)+0.0002, label = "B", color="red")+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[4]-1000000, xmax=CNVR_adj$CNV.end[4]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)
+  ylab("CNV coefficients (×10^(-3))")+
+  geom_segment(x=CNV_coef$CNV.start, xend=CNV_coef$CNV.end, y=CNV_coef$coef*1000, yend=CNV_coef$coef*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-1000000, xmax=CNVR_adj$CNV.end[1]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x = CNVR_adj$CNV.start[1], y = max(CNV_coef$coef*1000) +0.2, label = "A", color="red")+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[2]-1000000, xmax=CNVR_adj$CNV.end[2]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-1000000, xmax=CNVR_adj$CNV.end[3]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x = CNVR_adj$CNV.start[3], y = max(CNV_coef$coef*1000)+0.2, label = "B", color="red")+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[4]-1000000, xmax=CNVR_adj$CNV.end[4]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)
 
     
 
-PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]) > 0.001, "red", ifelse(abs(CNV_coef$coef[2:5]) < 10^(-8), "white", "black")))) + 
+PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[2:5]) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("", labels = as.character(CNV_coef$CNV.start[2:5]), breaks = CNV_coef$CNV.start[2:5])+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start[2:5], xend=CNV_coef$CNV.end[2:5], y=CNV_coef$coef[2:5], yend=CNV_coef$coef[2:5])+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-10, xmax=CNVR_adj$CNV.end[1]+10, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x =1/2*( CNVR_adj$CNV.start[1]+CNVR_adj$CNV.end[1]), y = max(CNV_coef$coef) +0.0002, label = "A", color="red")
+  geom_segment(x=CNV_coef$CNV.start[2:5], xend=CNV_coef$CNV.end[2:5], y=CNV_coef$coef[2:5]*1000, yend=CNV_coef$coef[2:5]*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-10, xmax=CNVR_adj$CNV.end[1]+10, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x =1/2*( CNVR_adj$CNV.start[1]+CNVR_adj$CNV.end[1]), y = max(CNV_coef$coef*1000) +0.0002, label = "Zoom in on region A", color="red")
   
 
-PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]) > 0.001, "red", ifelse(abs(CNV_coef$coef[11:14]) < 10^(-8), "white", "black")))) + 
+PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[11:14]*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("Genomic position", labels = as.character(CNV_coef$CNV.start[11:14]), breaks = CNV_coef$CNV.start[11:14])+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start[11:14], xend=CNV_coef$CNV.end[11:14], y=CNV_coef$coef[11:14], yend=CNV_coef$coef[11:14])+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-10, xmax=CNVR_adj$CNV.end[3]+10, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x =1/2*( CNVR_adj$CNV.start[3]+CNVR_adj$CNV.end[3]), y = max(CNV_coef$coef) +0.0002, label = "B", color="red")
+  geom_segment(x=CNV_coef$CNV.start[11:14], xend=CNV_coef$CNV.end[11:14], y=CNV_coef$coef[11:14]*1000, yend=CNV_coef$coef[11:14]*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-10, xmax=CNVR_adj$CNV.end[3]+10, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x =1/2*( CNVR_adj$CNV.start[3]+CNVR_adj$CNV.end[3]), y = max(CNV_coef$coef*1000) + 0.2, label = "Zoom in on region B", color="red")
 
 
 P + (PA/PB) + 
@@ -275,94 +329,10 @@ P + (PA/PB) +
   plot_layout( guide = "collect") & theme(legend.position="Top",
                       legend.text = element_text(size=12), legend.title = element_text(size=12)) 
 ```
-    
 
 
 
-
-## CNV association analysis with a specific pair of tuning parameters
-
-The user can choose function `fit_WTSMTH()` to show the regression result with some random combination of parameters without going through the CV process. 
-Although, it is much faster to perform `fit_WTSMTH()`, we do recommend the user to stick with the parameter tuning procedure with `cvfit_WTSMTH()` and find the best parameters and the best fitted model. 
- 
- 
-The `fit_WTSMTH()` function and the `cvfit_WTSMTH()` function uses the same analytical methods to perform CNV association analysis with penalized regression. Unlike the `cvfit_WTSMTH()` function that will fine-tune the parameters and select the optimal combination of $\lambda_{1}$ and $\lambda_{2}$ from a series of candidates, the `fit_WTSMTH()` function takes a user-specified value for $\lambda_{1}$ and $\lambda_{2}$ and estimate the coefficients for the given pair of parameters. 
-
-
-Since we already have a selected pair of parameters $\lambda_{1}$ and $\lambda_{2}$ from the CV procedure in the previous step. We can refit the regression model. The coefficient estimate is the same as in the fine-tuned model 
-
-       
-```{r}
-# we know the optimal tuning parameters and directly apply it here.
-QT_fit <- fit_WTSMTH(frag_data_QT, 
-                      lambda1 = -5, 
-                      lambda2 = 20, 
-                      weight="eql",
-                      family="gaussian")
-```
-
-
-Here lists the coefficients for `(Intercept)` and covariates. 
-
-```{r}
-
-QT_fit[c(1, 21:22), c("Vnames", "coef") ]
-
-```
-
-
-Here lists the coefficients for CNVs and the corresponding plots. 
-
-<details><summary> CNV coefficient estimate with given parameters for a continuous outcome. </summary>
-```{r}
-QT_fit[2:20, ]
-```
-</details>
-
-
-
-## Repeat the CV procedure with a binary outcome. 
-
-#### Preprocess the data 
-
-```{r, warning=FALSE}
-# data preprocessing 
-frag_data_BT <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
-```
-
-The result `frag_data_QT` is the output from the `prep()` function, which has a specially designed "WTsmth.data" format for easy application in the next step for CNV association analysis. It contains the same list as mentioned earlier: `design`, `Z`, `Y`, `weight.structure`, `weight.options`, and `CNVR.info`.
-
-Here is an alternative way to prepare data when performing CNV association analysis with the same set of CNVs for multiple outcome traits. Since we have the same `CNV` data, `Cov` data, and a different outcome trait `Y_BT`, we can manually format `Y_BT` to match the format in `frag_data_QT$Y`. 
-
-<details><summary> Here we provide the command for reference. </summary>
-```{r}
-# It would be useful when we have large CNV data set and perform association analysis for multiple traits with the same set of CNV data. 
-
-## copy frag_data_QT
-#frag_data_BT <- frag_data_QT
-#
-### replace Y with Y_BT in the correct format: ordered named vector
-### order the sample in Y_BT as in frag_data_QT$Y
-#rownames(Y_BT) <- Y_BT$ID
-#
-#frag_data_BT$Y <- Y_BT[names(frag_data_QT$Y), "Y"] |> drop()
-#names(frag_data_QT$Y) <- rownames(frag_data_QT$Y) 
-
-## Directly replace frag_data_QT$Z is also possible, keep in mind to use the correct variable name and order.
-```
-</details>
-
-
-#### CNV association analysis with cross-validation
-
-
-For CNV association analysis with a binary outcome, choose `family` = "binomial". 
-
-There are a few more options for the binary trait scenario compared to the continuous trait. 
-
-1. `stratified` within the `cv.control` list: If one category of the binary outcome is considered "rare", `stratified` = TRUE is recommended to make sure the data splits are having the same proportion of outcomes. 
-
-2. `iter.control`: For a binary outcome, we can also adjust the `iter.control` list with desired threshold that is deemed converged for coefficient estimate of a binary outcome.
+### CNV association analysis for a binary outcome {.tabset}
 
 
 
@@ -382,6 +352,23 @@ BT_TUNE <- cvfit_WTSMTH(frag_data_BT,
                         verbose = FALSE)
 
 ```
+
+#### Input of function `cvfit_WTSMTH()`
+
+The CNV association analysis for a bianry outcome has similar inputs as for a continuous outcome. The differences are
+
+* The output `frag_data_BT` from the `prep()` step has a binary trait `Y_BT` ready for CNV association analysis with a binary outcome. 
+
+* Choose `family` = "binomial" for a binary trait. 
+
+* There are a few more options specifically designed for the binary trait. 
+
+ + `stratified` within the `cv.control` list: If one category of the binary outcome is considered "rare", `stratified` = TRUE is recommended to make sure the data splits are having the same proportion of cases and controls in each fold. 
+
+ + `iter.control`: For a binary outcome, we can also adjust the `iter.control` list with desired threshold that is deemed converged for coefficient estimate of a binary outcome.  Refer to the user manual for more details. 
+
+
+#### Output of `cvfit_WTSMTH()`
 
 The output of the `cvfit_WTSMTH()` function has the same list object containing 3 elements: `Loss`,  `lambda.selected`, and `coef`.
 
@@ -419,7 +406,7 @@ The `selected.lambda` are the optimal tuning parameters from the candidate lists
  
 The estimated beta coefficients `coef` at the selected tuning parameters. It has `(intercept)`, CNV fragments (with detailed positions/type information), and covariate effects. In this small data example, we can print all coefficient estimate, but you can modify the code to show non-zero ones or the first few ones.  
     
-    
+<br>    
     
 Here lists the coefficients for `(Intercept)` and covariates. 
 
@@ -430,9 +417,11 @@ BT_TUNE$coef[c(1, 21:22), c("Vnames", "coef") ]
 ```
 
 
+<br>
+
 Here lists the coefficients for CNVs and the corresponding plots. 
 
-<details><summary> CNV coefficient estimate of a fine-tuned model for a binary outcome. </summary>
+<details><summary>(Click to unfold) CNV coefficient estimate of a fine-tuned model for a binary outcome. </summary>
 ```{r}
 BT_TUNE$coef[2:20, ]
 ```
@@ -444,45 +433,90 @@ BT_TUNE$coef[2:20, ]
 CNV_coef <- BT_TUNE$coef[2:20,]
 
 
-P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef) > 0.001, "red", ifelse(abs(CNV_coef$coef) < 10^(-8), "white", "black")))) + 
+P <- ggplot(CNV_coef, aes(x= CNV_coef$CNV.start , y=CNV_coef$coef*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef*1000) > 1, "red", ifelse(abs(CNV_coef$coef*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("Genomic position", labels = as.character(CNVR_adj$CNV.start), breaks = CNVR_adj$CNV.start)+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start, xend=CNV_coef$CNV.end, y=CNV_coef$coef, yend=CNV_coef$coef)+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-1000000, xmax=CNVR_adj$CNV.end[1]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x = CNVR_adj$CNV.start[1], y = max(CNV_coef$coef) +0.001, label = "A", color="red")+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[2]-1000000, xmax=CNVR_adj$CNV.end[2]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-1000000, xmax=CNVR_adj$CNV.end[3]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x = CNVR_adj$CNV.start[3], y = max(CNV_coef$coef)+0.001, label = "B", color="red")+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[4]-1000000, xmax=CNVR_adj$CNV.end[4]+1000000, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)
+  ylab("CNV coefficients (×10^(-3))")+
+  geom_segment(x=CNV_coef$CNV.start, xend=CNV_coef$CNV.end, y=CNV_coef$coef*1000, yend=CNV_coef$coef*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-1000000, xmax=CNVR_adj$CNV.end[1]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x = CNVR_adj$CNV.start[1], y = max(CNV_coef$coef*1000)+0.2, label = "A", color="red")+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[2]-1000000, xmax=CNVR_adj$CNV.end[2]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-1000000, xmax=CNVR_adj$CNV.end[3]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x = CNVR_adj$CNV.start[3], y = max(CNV_coef$coef*1000)+0.2, label = "B", color="red")+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[4]-1000000, xmax=CNVR_adj$CNV.end[4]+1000000, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)
 
     
 
-PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]) > 0.001, "red", ifelse(abs(CNV_coef$coef[2:5]) < 10^(-8), "white", "black")))) + 
+PA <- ggplot(CNV_coef[2:5,], aes(x= 1/2*(CNV_coef$CNV.start[2:5]+CNV_coef$CNV.end[2:5]) , y=CNV_coef$coef[2:5]*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef[2:5]*1000) > 0.001, "red", ifelse(abs(CNV_coef$coef[2:5]*1000) < 10^(-8), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("", labels = as.character(CNV_coef$CNV.start[2:5]), breaks = CNV_coef$CNV.start[2:5])+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start[2:5], xend=CNV_coef$CNV.end[2:5], y=CNV_coef$coef[2:5], yend=CNV_coef$coef[2:5])+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-10, xmax=CNVR_adj$CNV.end[1]+10, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x =1/2*( CNVR_adj$CNV.start[1]+CNVR_adj$CNV.end[1]), y = max(CNV_coef$coef) +0.001, label = "A", color="red")
+  geom_segment(x=CNV_coef$CNV.start[2:5], xend=CNV_coef$CNV.end[2:5], y=CNV_coef$coef[2:5]*1000, yend=CNV_coef$coef[2:5]*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[1]-10, xmax=CNVR_adj$CNV.end[1]+10, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x =1/2*( CNVR_adj$CNV.start[1]+CNVR_adj$CNV.end[1]), y = max(CNV_coef$coef*1000) + 0.4, label = "Zoom in on region A", color="red")
   
 
-PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]))+theme_bw()+ 
-  geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]) > 0.001, "red", ifelse(abs(CNV_coef$coef[11:14]) < 10^(-8), "white", "black")))) + 
+PB <- ggplot(CNV_coef[11:14,], aes(x= 1/2*(CNV_coef$CNV.start[11:14]+CNV_coef$CNV.end[11:14]) , y=CNV_coef$coef[11:14]*1000))+theme_bw()+ 
+  geom_point(aes(color = ifelse(abs(CNV_coef$coef[11:14]*1000) > 1, "red", ifelse(abs(CNV_coef$coef[11:14]*1000) < 10^(-5), "white", "black")))) + 
   scale_color_identity()+
   theme(axis.text.x = element_text(size = 10, angle = 25, vjust = 1, hjust = 1))+
   scale_x_continuous("Genomic position", labels = as.character(CNV_coef$CNV.start[11:14]), breaks = CNV_coef$CNV.start[11:14])+
-  ylab("CNV coefficients")+
-  geom_segment(x=CNV_coef$CNV.start[11:14], xend=CNV_coef$CNV.end[11:14], y=CNV_coef$coef[11:14], yend=CNV_coef$coef[11:14])+
-  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-10, xmax=CNVR_adj$CNV.end[3]+10, ymin=min(CNV_coef$coef), ymax = max(CNV_coef$coef)), fill="yellow", alpha = 0.02)+
-  annotate("text", x =1/2*( CNVR_adj$CNV.start[3]+CNVR_adj$CNV.end[3]), y = max(CNV_coef$coef) +0.001, label = "B", color="red")
+  geom_segment(x=CNV_coef$CNV.start[11:14], xend=CNV_coef$CNV.end[11:14], y=CNV_coef$coef[11:14]*1000, yend=CNV_coef$coef[11:14]*1000)+
+  geom_rect(aes(xmin=CNVR_adj$CNV.start[3]-10, xmax=CNVR_adj$CNV.end[3]+10, ymin=min(CNV_coef$coef*1000), ymax = max(CNV_coef$coef*1000)), fill="yellow", alpha = 0.02)+
+  annotate("text", x =1/2*( CNVR_adj$CNV.start[3]+CNVR_adj$CNV.end[3]), y = max(CNV_coef$coef*1000) +0.4, label = "Zoom in on region B", color="red")
 
 
 P + (PA/PB) +plot_annotation(title = "CNV coefficient estiamte across the genomic region - A fine-tuned model")+
   plot_layout(axes = "collect", widths = c(2,1)) + plot_layout( guide = "collect") & theme(legend.position="Top",
                       legend.text = element_text(size=12), legend.title = element_text(size=12)) 
 ```
+
+
+
+## CNV association analysis with a specific pair of tuning parameters
+
+The user can choose the function `fit_WTSMTH()` to show the regression result with some random combination of parameters without going through the CV process. Although, it is much faster to perform `fit_WTSMTH()`, we do recommend the user to stick with the parameter tuning procedure with `cvfit_WTSMTH()` and find the best parameters and the best fitted model. 
+ 
+ 
+The `fit_WTSMTH()` function and the `cvfit_WTSMTH()` function uses the same analytical methods to perform CNV association analysis with penalized regression. Unlike the `cvfit_WTSMTH()` function that will fine-tune the parameters and select the optimal combination of $\lambda_{1}$ and $\lambda_{2}$ from a series of candidates, the `fit_WTSMTH()` function takes a user-specified value for $\lambda_{1}$ and $\lambda_{2}$ and estimate the coefficients for the given pair of parameters. 
+
+
+If we already have a selected best pair of parameters $\lambda_{1}$ and $\lambda_{2}$ from the CV procedure, we can refit the regression model and the coefficient estimate is the same as in the fine-tuned model. 
+
+       
+```{r}
+# we know the optimal tuning parameters and directly apply it here.
+QT_fit <- fit_WTSMTH(frag_data_QT, 
+                      lambda1 = -5, 
+                      lambda2 = 20, 
+                      weight="eql",
+                      family="gaussian")
+```
+
+
+<br>
+
+Here lists the coefficients for `(Intercept)` and covariates. 
+
+```{r}
+
+QT_fit[c(1, 21:22), c("Vnames", "coef") ]
+
+```
+
+
+<br>
+
+Here lists the coefficients for CNVs and the corresponding plots. 
+
+<details><summary> CNV coefficient estimate with given parameters for a continuous outcome. </summary>
+```{r}
+QT_fit[2:20, ]
+```
+</details>
+
+
+However, if we choose a random pair of tuning parameters, the function will not have optimal variable selection and effect smoothness. In summary, the `cvfit_WTSMTH()` function is recommended for model fitting with CV. 
