@@ -77,7 +77,7 @@
 #' # Real data analysis would take longer time to run. 
 #' 
 #' # load provided illustrative toy dataset with a continuous outcome 
-#' and a binary outcome
+#' # and a binary outcome
 #' library("CNVreg")
 #' data("CNVCOVY")
 #' 

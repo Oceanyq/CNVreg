@@ -92,7 +92,7 @@ and find the pair of lambda_1 and lambda_2 that minimizes the average validation
 # Real data analysis would take longer time to run. 
 
 # load provided illustrative toy dataset with a continuous outcome 
-and a binary outcome
+# and a binary outcome
 library("CNVreg")
 data("CNVCOVY")
 
