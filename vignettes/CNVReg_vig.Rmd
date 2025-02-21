@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-#knitr::opts_knit$set(root.dir = "~/CNVreg_121/vignettes")
+knitr::opts_knit$set(root.dir = "~/CNVreg_121/vignettes")
 ```
 
 ```{r setup}
@@ -286,8 +286,8 @@ QT_TUNE$coef[2:20, ]
 # keep CNV fragments and exclude intercept and covariates(Age, Sex) in ploting, row(2:20)
 
 CNVR <- frag_data_QT$CNVR.info %>% group_by(CNV.id, deldup)%>%
-  summarise(CNV.start = min(lower.boundary), 
-            CNV.end = max(upper.boundary), 
+  summarise(CNV.start = min(CNV.start), 
+            CNV.end = max(CNV.end), 
             nfrag = length(CNV.id), 
             .groups = 'drop')
 CNVR_adj <- CNVR[CNVR$nfrag > 1, ]
