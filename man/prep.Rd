@@ -11,8 +11,9 @@ prep(CNV, Y, Z = NULL, rare.out = 0.05)
 columns: 
 \itemize{
   \item "ID": character, unique identity for each sample
-  \item "CHR": integer, allowed range 1-22 NOTE: only 1 CHR can be present
-  \item "BP1": integer, CNV event starting position
+  \item "CHR": integer, allowed range 1-22 NOTE: only 1 CHR can be present,
+   which means this function processes one chromosome at a time.
+  \item "BP1": integer, CNV event starting position, 
   \item "BP2": integer, CNV event ending position, each record must have 
         BP1 <= BP2, CNV at least 1bp (or other unit length)
   \item "TYPE": integer, range 0, 1, 3, 4, and larger allowed, i.e.,
@@ -21,13 +22,13 @@ columns:
 
 \item{Y}{A data.frame. Must include column "ID". Must have 2 columns. For binary,
 values must be 0 (control) or 1 (case). For continuous, values must be 
-real. Y$ID must contain all Z$ID.}
+real number. Y$ID must contain all unique CNV$ID. Y and Z have the same IDs.}
 
 \item{Z}{A data.frame. Must include column "ID". All other columns are covariates,
 which can be continuous, binary, or categorical variables. At a minimum, 
 Z must contain all unique CNV$ID values.}
 
-\item{rare.out}{A scalar numeric in (0, 0.5); event rates below this value are
+\item{rare.out}{A scalar numeric in the range [0, 0.5); event rates below this value are
 filtered out of the data.}
 }
 \value{
@@ -47,17 +48,19 @@ An S3 object of class "WTsmth.data" extending a list object containing
 }
 \description{
 Function `prep()` converts an individual's CNV events within a genomic 
- region to a CNV profile curve, further processes it as CNV fragments, 
+ region (from one chromosome) to a CNV profile curve, further processes it as CNV fragments, 
  and filter out rare fragments. It analyzes the adjacency relationship 
  between CNV fragments and prepares different options of weight matrices
  for the penalized regression analysis. In addition, it 
  formats data into `WTsmth.data` format for regression analysis.
 }
 \examples{
-# Note that the example data set is smaller than actual CNV data to accommodate a fast example.
+# Note that the example data set is smaller than actual CNV data to accommodate 
+# a fast example.
 # Real data analysis would take a little bit longer time to run. 
 
-# load provided illustrative toy dataset with a continuous outcome and a binary outcome
+# load provided illustrative toy dataset with a continuous outcome and a 
+# binary outcome
 library("CNVreg")
 data("CNVCOVY")
 #prepare data format for regression analysis
@@ -74,9 +77,8 @@ rownames(Y_BT) <- Y_BT$ID
 frag_data$Y <- Y_BT[names(frag_data$Y), "Y"] |> drop()
 names(frag_data$Y) <- rownames(frag_data$Z) 
 
-# Or, we can also repeat the procedure using prep() function 
+# Or, we can repeat the procedure using prep() function with Y=Y_BT
 # frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
 
 
 }
-\keyword{internal}
