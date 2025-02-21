@@ -14,7 +14,15 @@
 #'   eql, keql, wcs, kwcs, wif, kwif indicating
 #'   equal weight, K x equal weight, Cosine similarity, K x cosine similarity, 
 #'   inverse frequency, and K x inverse frequency, where K is the number of
-#'   individuals in each CNVR. 
+#'   individuals in each CNV-active region. 
+#'   `eql` and `keql` gives equal weight to adjacent CNVs.
+#'    `wcs` and `kwcs` allow similar CNV fragments to have more similar effect size. 
+#'    `wif` and `kwif` will encourage CNV with lower frequency to borrow 
+#'   information from nearby more frequent CNV fragments.
+#'   Considering that CNVs usually present in some CNV-active regions and there are
+#'    large regions in between with no CNV at all. K will describe the number of individuals 
+#'    having any CNV activities in a CNV-active region, and varying the weight according 
+#'    to the sample size across regions. 
 #' @param family A character. The family of the outcome. Must be one of
 #'   "gaussian" (Y is continuous) or "binomial" (Y is binary).
 #' @param iter.control A list object. Allows user to control iterative
@@ -170,19 +178,19 @@ fit_WTSMTH <- function(data, lambda1, lambda2, weight = NULL,
                        coef= b_coef[-1])
   cnvr_info <- data$CNVR.info
   cnvr_info$Vnames <- paste0(cnvr_info$deldup, cnvr_info$grid.id)
-  b_cnv <- merge(cnvr_info[ ,c("Vnames", "CHR", "lower.boundary", "upper.boundary", "deldup")],
+  b_cnv <- merge(cnvr_info[ ,c("Vnames", "CHR", "CNV.start", "CNV.end", "deldup")],
                  b_cnv, by = "Vnames")
-  b_cnv <- b_cnv[order(b_cnv$deldup, b_cnv$lower.boundary),]
+  b_cnv <- b_cnv[order(b_cnv$deldup, b_cnv$CNV.start),]
   
   b_x <- cbind(names(b_coef[(1+ncol(data$design)+1):(1+ncol(data$design)+ncol(data$Z))]), matrix("", nrow=ncol(data$Z), ncol=4), b_coef[(1+ncol(data$design)+1):(1+ncol(data$design)+ncol(data$Z))])
-  colnames(b_x) <- c("Vnames", "CHR", "lower.boundary", "upper.boundary", "deldup", "coef")
+  colnames(b_x) <- c("Vnames", "CHR", "CNV.start", "CNV.end", "deldup", "coef")
   
   b_cnv <- rbind(b_intercept, b_cnv, b_x)
   
   b_cnv <- data.frame("Vnames" = b_cnv$Vnames , 
                       "CHR" = b_cnv$CHR |> as.integer(),
-                      "CNV.start" = b_cnv$lower.boundary |> as.numeric(),
-                      "CNV.end" = b_cnv$upper.boundary |> as.numeric(),
+                      "CNV.start" = b_cnv$CNV.start |> as.numeric(),
+                      "CNV.end" = b_cnv$CNV.end |> as.numeric(),
                       "deldup" = b_cnv$deldup ,
                       "coef" = b_cnv$coef |> as.numeric())
   
