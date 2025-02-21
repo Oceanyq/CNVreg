@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-knitr::opts_knit$set(root.dir = "~/CNVreg_121/vignettes")
+# knitr::opts_knit$set(root.dir = "~/CNVreg_121/vignettes")
 ```
 
 ```{r setup}
