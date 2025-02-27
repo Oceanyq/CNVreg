@@ -631,7 +631,7 @@ outcome traits. <code>Y_QT</code> contains a quantitative trait.
 data(&quot;CNVCOVY&quot;, package=&quot;CNVreg&quot;)</code></pre>
 <details>
 <summary>
-(click to unfold) Here is the summary of each file in the dataset
+(Click to unfold) Here is the summary of each file in the dataset
 </summary>
 <pre class="r"><code># view the dataset
 summary(CNV)
@@ -684,12 +684,7 @@ function</h2>
 <p>The <code>prep()</code> function converts an individual’s CNV events
 within a genomic region to fragments, and filters out rare events. It
 analyzes the adjacency relationship between CNV fragments and prepares
-different weight options for the penalized regression analysis. Here is
-how you can use the <code>prep()</code> function to preprocess
-<code>CNV</code>, <code>Cov</code> and an outcome trait. The outcome
-trait can be a continuous trait <code>Y_QT</code> or a binary trait
-<code>Y_BT</code>. The syntax of the <code>prep()</code> command is the
-same for continuous and binary outcomes.</p>
+different weight options for the penalized regression analysis.</p>
 <div id="input-of-function-prep" class="section level3">
 <h3>Input of function <code>prep()</code></h3>
 <p>The function <code>prep()</code> has 4 inputs.</p>
@@ -706,14 +701,11 @@ variables can be any covariates of interest.</p></li>
 value is 0.05, which excludes CNVs with frequency &lt; <span class="math inline">\(5\%\)</span></p></li>
 </ul>
 </div>
-<div id="prepare-data-with-a-continuous-outcome" class="section level3">
-<h3>Prepare data with a continuous outcome</h3>
-<pre class="r"><code># data preprocessing for a quantitative(continuous) outcome Y_QT
-frag_data_QT &lt;- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)</code></pre>
-<p>The result <code>frag_data_QT</code> is the output from the
-<code>prep()</code> function, which has a specially designed
-“WTsmth.data” format for easy application in the next step for CNV
-association analysis. It has 6 components.</p>
+<div id="output-of-function-prep" class="section level3">
+<h3>Output of function <code>prep()</code></h3>
+<p>The output of the <code>prep()</code> function has a specially
+designed “WTsmth.data” format for easy application in the next step for
+CNV association analysis. It has 6 components.</p>
 <ul>
 <li><p><code>design</code>: a matrix of the CNV fragments in n by p
 dimensions, where n is the number of samples and p is the total number
@@ -745,9 +737,25 @@ fragments and their adjacency information. Each row represents a CNV
 fragment and the fragment names match the column names in
 <code>frag_data_QT$design</code>.</p></li>
 </ul>
+</div>
+<div id="application-of-prep-function" class="section level3">
+<h3>Application of <code>prep()</code> function</h3>
+<p>Here is how you can use the <code>prep()</code> function to
+preprocess <code>CNV</code>, <code>Cov</code> and an outcome trait. The
+outcome trait can be a continuous trait <code>Y_QT</code> or a binary
+trait <code>Y_BT</code>. The command syntax of the <code>prep()</code>
+function is the same for continuous and binary outcomes. We showcase two
+application examples, which will be used in the next step to illustrate
+CNV association analysis with a continuous outcome and a binary
+outcome.</p>
+<div id="application-1-process-cnv-cov-and-a-continuous-trait-y_qt" class="section level4">
+<h4>Application 1: Process <code>CNV</code>, <code>Cov</code>, and a
+continuous trait <code>Y_QT</code></h4>
+<pre class="r"><code># data preprocessing for a quantitative(continuous) outcome Y_QT
+frag_data_QT &lt;- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)</code></pre>
 <details>
 <summary>
-(click to unfold) Here is a more detailed description of the output
+(Click to unfold) Here is a more detailed description of the output
 <code>frag_data_QT</code>
 </summary>
 <pre class="r"><code># Format of `prep()` funtion output
@@ -787,26 +795,21 @@ fragment and the fragment names match the column names in
 #&gt;   .. ..$ : chr [1:6] &quot;eql&quot; &quot;keql&quot; &quot;wcs&quot; &quot;kwcs&quot; ...
 #&gt;   .. ..$ : NULL
 #&gt;  $ CNVR.info       :&#39;data.frame&#39;:    19 obs. of  7 variables:
-#&gt;   ..$ grid.id       : int [1:19] 1 3 4 5 6 8 9 10 11 13 ...
-#&gt;   ..$ CNV.id        : int [1:19] 1 2 2 2 2 3 3 3 3 4 ...
-#&gt;   ..$ freq          : int [1:19] 177 143 145 143 144 437 725 603 564 640 ...
-#&gt;   ..$ CHR           : int [1:19] 1 1 1 1 1 1 1 1 1 1 ...
-#&gt;   ..$ lower.boundary: num [1:19] 1.19e+08 1.21e+08 1.21e+08 1.21e+08 1.21e+08 ...
-#&gt;   ..$ upper.boundary: num [1:19] 1.19e+08 1.21e+08 1.21e+08 1.21e+08 1.21e+08 ...
-#&gt;   ..$ deldup        : chr [1:19] &quot;del&quot; &quot;del&quot; &quot;del&quot; &quot;del&quot; ...
+#&gt;   ..$ grid.id  : int [1:19] 1 3 4 5 6 8 9 10 11 13 ...
+#&gt;   ..$ CNV.id   : int [1:19] 1 2 2 2 2 3 3 3 3 4 ...
+#&gt;   ..$ freq     : int [1:19] 177 143 145 143 144 437 725 603 564 640 ...
+#&gt;   ..$ CHR      : int [1:19] 1 1 1 1 1 1 1 1 1 1 ...
+#&gt;   ..$ CNV.start: num [1:19] 1.19e+08 1.21e+08 1.21e+08 1.21e+08 1.21e+08 ...
+#&gt;   ..$ CNV.end  : num [1:19] 1.19e+08 1.21e+08 1.21e+08 1.21e+08 1.21e+08 ...
+#&gt;   ..$ deldup   : chr [1:19] &quot;del&quot; &quot;del&quot; &quot;del&quot; &quot;del&quot; ...
 #&gt;  - attr(*, &quot;class&quot;)= chr &quot;WTsmth.data&quot;</code></pre>
 </details>
 </div>
-<div id="prepare-data-with-a-binary-outcome" class="section level3">
-<h3>Prepare data with a binary outcome</h3>
+<div id="application-2-process-cnv-cov-and-a-binary-trait-y_bt" class="section level4">
+<h4>Application 2: Process <code>CNV</code>, <code>Cov</code>, and a
+binary trait <code>Y_BT</code></h4>
 <pre class="r"><code># data preprocessing with a binary trait
 frag_data_BT &lt;- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)</code></pre>
-<p>The result <code>frag_data_BT</code> is the output from the
-<code>prep()</code> function with a binary trait, which has the same
-“WTsmth.data” format. It contains the same list in the continuous
-scenario as mentioned earlier: <code>design</code>, <code>Z</code>,
-<code>Y</code>, <code>weight.structure</code>,
-<code>weight.options</code>, and <code>CNVR.info</code>.</p>
 <p>Here is an alternative way to prepare data when performing CNV
 association analysis with the same set of CNVs for multiple outcome
 traits. Since we have the same <code>CNV</code> data, <code>Cov</code>
@@ -833,6 +836,7 @@ format <code>Y_BT</code> to match the format in
 </details>
 </div>
 </div>
+</div>
 <div id="cnv-association-analysis-with-cross-validation-cv" class="section level2 tabset">
 <h2 class="tabset">CNV association analysis with cross-validation
 (CV)</h2>
@@ -856,13 +860,15 @@ parameters and fit an optimal model with the selected parameters.</p>
                                            n.core = 1L, 
                                            stratified = FALSE),
                            verbose = FALSE)</code></pre>
-<div id="input-of-cvfit_wtsmth" class="section level4">
-<h4>Input of cvfit_WTSMTH()</h4>
-<p>The <code>cvfit_WTSMTH()</code> function takes the output of
-<code>prep()</code> function as one of the major inputs, for example,
-<code>frag_data_QT</code> prepared for the continuous trait and
-<code>frag_data_BT</code> prepared for the binary trait.</p>
-<p><code>lambda1</code> and <code>lambda2</code> take the candidate
+<div id="input-of-function-cvfit_wtsmth" class="section level4">
+<h4>Input of function <code>cvfit_WTSMTH()</code></h4>
+<ul>
+<li><p><code>data</code>: The <code>cvfit_WTSMTH()</code> function takes
+a <code>data</code> in <code>WTsmth.data</code> format, which is the
+output of <code>prep()</code> function, as one of the major inputs, for
+example, <code>frag_data_QT</code> prepared for the continuous trait and
+<code>frag_data_BT</code> prepared for the binary trait.</p></li>
+<li><p><code>lambda1</code> and <code>lambda2</code>: take the candidate
 tuning parameters that control variable selection (<code>lambda1</code>)
 and effect smoothness (<code>lambda2</code>). Provided values will be
 transformed to 2^(<code>lambda1</code>) and 2^(<code>lambda2</code>). We
@@ -870,17 +876,19 @@ provide default values for both vectors. The user can customize the
 range and step_size of the candidate tuning parameters. In most cases,
 the user will need to run the function more than one time to adjust the
 range and step_size of tuning parameters to locate to a reasonable range
-according to the previous round of model fitting.</p>
-<p><code>weight</code> has six different options as described earlier.
-Since we only have a small dataset, varying the <code>weight</code>
-options will not have much influence on the model fitting results. In
-real CNV data with different similarity patterns and CNV frequencies,
-varying the <code>weight</code> option are expected to have different
-effects.</p>
-<p><code>family</code> has two options: <code>gaussian</code> for a
-continuous outcome, and <code>binomial</code> for a binary outcome.</p>
-<p>This function also supports parallel computing and change of n-folds
-in CV by adjusting the <code>cv.control</code> list.</p>
+according to the previous round of model fitting.</p></li>
+<li><p><code>weight</code>: it has six different options as described
+earlier. Since we only have a small dataset, varying the
+<code>weight</code> options will not have much influence on the model
+fitting results. In real CNV data with different similarity patterns and
+CNV frequencies, varying the <code>weight</code> option are expected to
+have different effects.</p></li>
+<li><p><code>family</code>: has two options: <code>gaussian</code> for a
+continuous outcome, and <code>binomial</code> for a binary
+outcome.</p></li>
+<li><p><code>cv.control</code>: This function also supports parallel
+computing and change of n-folds in CV by adjusting the
+<code>cv.control</code> list.</p>
 <ul>
 <li><p><code>n.fold</code> controls the number of folds used in
 CV.</p></li>
@@ -888,15 +896,18 @@ CV.</p></li>
 parallel computing.</p></li>
 <li><p><code>stratified</code> only has control for a binary outcome. We
 will skip it here and describe it in the binary section.</p></li>
+</ul></li>
+<li><p><code>verbose</code>: If choose <code>verbose</code> = TRUE, it
+will print a message about where the program is currently working
+on.</p></li>
 </ul>
-<p>If choose <code>verbose</code> = TRUE, it will print a message about
-where the program is currently working on.</p>
 </div>
-<div id="output-of-cvfit_wtsmth" class="section level4">
-<h4>Output of cvfit_WTSMTH()</h4>
+<div id="output-of-function-cvfit_wtsmth" class="section level4">
+<h4>Output of function <code>cvfit_WTSMTH()</code></h4>
 <p>The output of the <code>cvfit_WTSMTH()</code> function is a list
 object containing 3 elements: <code>Loss</code>,
 <code>lambda.selected</code>, and <code>coef</code>.</p>
+<p><br></p>
 <ul>
 <li><p><code>Loss</code></p>
 <p>The <code>Loss</code> keeps track of the average validation loss in
@@ -1113,6 +1124,7 @@ Lambda2
 </tr>
 </tbody>
 </table>
+<p><br></p>
 <ul>
 <li><code>selected.lambda</code></li>
 </ul>
@@ -1122,6 +1134,7 @@ confirmed with the <code>Loss</code> table.</p>
 <pre class="r"><code># selected optimal tuning parameters with minimum loss
  QT_TUNE$selected.lambda 
 #&gt; [1] -5 20</code></pre>
+<p><br></p>
 <ul>
 <li><code>coef</code></li>
 </ul>
@@ -1199,10 +1212,10 @@ BT_TUNE &lt;- cvfit_WTSMTH(frag_data_BT,
                                              tol.beta = 10^(-3), 
                                              tol.loss = 10^(-6)), 
                         verbose = FALSE)</code></pre>
-<div id="input-of-function-cvfit_wtsmth" class="section level4">
+<div id="input-of-function-cvfit_wtsmth-1" class="section level4">
 <h4>Input of function <code>cvfit_WTSMTH()</code></h4>
 <p>The CNV association analysis for a bianry outcome has similar inputs
-as for a continuous outcome. The differences are</p>
+as for a continuous outcome. The differences are:</p>
 <ul>
 <li><p>The output <code>frag_data_BT</code> from the <code>prep()</code>
 step has a binary trait <code>Y_BT</code> ready for CNV association
@@ -1210,7 +1223,8 @@ analysis with a binary outcome.</p></li>
 <li><p>Choose <code>family</code> = “binomial” for a binary
 trait.</p></li>
 <li><p>There are a few more options specifically designed for the binary
-trait.</p></li>
+trait.</p>
+<ul>
 <li><p><code>stratified</code> within the <code>cv.control</code> list:
 If one category of the binary outcome is considered “rare”,
 <code>stratified</code> = TRUE is recommended to make sure the data
@@ -1220,13 +1234,15 @@ fold.</p></li>
 adjust the <code>iter.control</code> list with desired threshold that is
 deemed converged for coefficient estimate of a binary outcome. Refer to
 the user manual for more details.</p></li>
+</ul></li>
 </ul>
 </div>
-<div id="output-of-cvfit_wtsmth-1" class="section level4">
-<h4>Output of <code>cvfit_WTSMTH()</code></h4>
+<div id="output-of-function-cvfit_wtsmth-1" class="section level4">
+<h4>Output of function <code>cvfit_WTSMTH()</code></h4>
 <p>The output of the <code>cvfit_WTSMTH()</code> function has the same
 list object containing 3 elements: <code>Loss</code>,
 <code>lambda.selected</code>, and <code>coef</code>.</p>
+<p><br></p>
 <ul>
 <li><code>Loss</code></li>
 </ul>
@@ -1325,6 +1341,7 @@ Lambda2
 </tr>
 </tbody>
 </table>
+<p><br></p>
 <ul>
 <li><code>selected.lambda</code></li>
 </ul>
@@ -1334,6 +1351,7 @@ confirmed with the <code>Loss</code> table.</p>
 <pre class="r"><code># selected optimal tuning parameters with minimum loss
  BT_TUNE$selected.lambda 
 #&gt; [1] -5  6</code></pre>
+<p><br></p>
 <ul>
 <li><code>coef</code></li>
 </ul>
@@ -1384,15 +1402,11 @@ binary outcome.
 </div>
 </div>
 </div>
-<div id="cnv-association-analysis-with-a-specific-pair-of-tuning-parameters" class="section level2">
-<h2>CNV association analysis with a specific pair of tuning
+<div id="cnv-association-analysis-with-a-given-pair-of-tuning-parameters" class="section level2 tabset">
+<h2 class="tabset">CNV association analysis with a given pair of tuning
 parameters</h2>
-<p>The user can choose the function <code>fit_WTSMTH()</code> to show
-the regression result with some random combination of parameters without
-going through the CV process. Although, it is much faster to perform
-<code>fit_WTSMTH()</code>, we do recommend the user to stick with the
-parameter tuning procedure with <code>cvfit_WTSMTH()</code> and find the
-best parameters and the best fitted model.</p>
+<p>The user can use the function <code>fit_WTSMTH()</code> to reproduce
+the regression result with the selected pair of parameters.</p>
 <p>The <code>fit_WTSMTH()</code> function and the
 <code>cvfit_WTSMTH()</code> function uses the same analytical methods to
 perform CNV association analysis with penalized regression. Unlike the
@@ -1400,16 +1414,48 @@ perform CNV association analysis with penalized regression. Unlike the
 and select the optimal combination of <span class="math inline">\(\lambda_{1}\)</span> and <span class="math inline">\(\lambda_{2}\)</span> from a series of candidates,
 the <code>fit_WTSMTH()</code> function takes a user-specified value for
 <span class="math inline">\(\lambda_{1}\)</span> and <span class="math inline">\(\lambda_{2}\)</span> and estimate the coefficients
-for the given pair of parameters.</p>
-<p>If we already have a selected best pair of parameters <span class="math inline">\(\lambda_{1}\)</span> and <span class="math inline">\(\lambda_{2}\)</span> from the CV procedure, we can
-refit the regression model and the coefficient estimate is the same as
+for the given pair of parameters. Although, it is much faster to perform
+<code>fit_WTSMTH()</code>, we do recommend the user to stick with the
+parameter tuning procedure with <code>cvfit_WTSMTH()</code> and find the
+best parameters and the corresponding model.</p>
+<p>If we already have a selected the best pair of parameters <span class="math inline">\(\lambda_{1}\)</span> and <span class="math inline">\(\lambda_{2}\)</span> from the CV procedure, we can
+refit the regression model, and the coefficient estimate is the same as
 in the fine-tuned model.</p>
-<pre class="r"><code># we know the optimal tuning parameters and directly apply it here.
+<pre class="r"><code># we know the optimal tuning parameters and directly apply it to reproduce the analysis for a continuous outcome.
 QT_fit &lt;- fit_WTSMTH(frag_data_QT, 
                       lambda1 = -5, 
                       lambda2 = 20, 
                       weight=&quot;eql&quot;,
                       family=&quot;gaussian&quot;)</code></pre>
+<div id="input-of-function-fit_wtsmth" class="section level3">
+<h3>Input of function <code>fit_WTSMTH()</code></h3>
+<p>The input variables of function <code>fit_WTSMTH()</code> is similar
+to that of <code>cvfit_WTSMTH()</code>.</p>
+<ul>
+<li><p><code>data</code>: it also takes <code>data</code> in
+<code>WTsmth.data</code> format as prepared in the <code>prep()</code>
+step.</p></li>
+<li><p><code>lambda1</code> and <code>lambda2</code>: each takes one
+numeric value. Provided values will be transformed to
+2^(<code>lambda1</code>) and 2^(<code>lambda2</code>).</p></li>
+<li><p><code>weight</code>: it takes one of the options from
+{<code>eql</code>, <code>keql</code>, <code>wcs</code>,
+<code>kwcs</code>, <code>wif</code>, <code>kwif</code>} as mentioned
+earlier.</p></li>
+<li><p><code>family</code>: it takes <code>gaussian</code> for a
+continuous outcome and <code>binomial</code> for a binary
+outcome.</p></li>
+<li><p><code>iter.control</code>: for a binary outcome,
+<code>iter.control</code> controls iterative coefficient estimate
+procedure as described earlier.</p></li>
+</ul>
+</div>
+<div id="output-of-fit_wtsmth" class="section level3">
+<h3>Output of <code>fit_WTSMTH()</code></h3>
+<p>Refit the model with the selected pair of tuning parameters for a
+continuous outcome <code>Y_QT</code>. The coefficient estimate from
+<code>fit_WTSMTH()</code> is the same as the coefficient estimate of
+<code>cvfit_WTSMTH()</code>.</p>
 <p><br></p>
 <p>Here lists the coefficients for <code>(Intercept)</code> and
 covariates.</p>
@@ -1423,7 +1469,8 @@ QT_fit[c(1, 21:22), c(&quot;Vnames&quot;, &quot;coef&quot;) ]
 <p>Here lists the coefficients for CNVs and the corresponding plots.</p>
 <details>
 <summary>
-CNV coefficient estimate with given parameters for a continuous outcome.
+(Click to unfold) CNV coefficient estimate with given parameters for a
+continuous outcome.
 </summary>
 <pre class="r"><code>QT_fit[2:20, ]
 #&gt;    Vnames CHR CNV.start   CNV.end deldup          coef
@@ -1448,9 +1495,12 @@ CNV coefficient estimate with given parameters for a continuous outcome.
 #&gt; 20  dup15   1 212455200 212455300    dup  0.0000000000</code></pre>
 </details>
 <p>However, if we choose a random pair of tuning parameters, the
-function will not have optimal variable selection and effect smoothness.
-In summary, the <code>cvfit_WTSMTH()</code> function is recommended for
-model fitting with CV.</p>
+function will not have optimal variable selection and effect smoothness
+performance.</p>
+<p>In summary, the <code>cvfit_WTSMTH()</code> function is recommended
+for model fitting with CV. <code>fit_WTSMTH()</code> can be used for
+testing purpose or to reproduce the result.</p>
+</div>
 </div>
 
 

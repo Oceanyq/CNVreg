@@ -21,8 +21,8 @@
 #' @returns A list object containing
 #'   \item{CHR}{The chromosome under analysis}
 #'   \item{id}{An integer vector of ids for each grid unit}
-#'   \item{lower.boundary}{An integer vector of the lower boundary of each grid}
-#'   \item{upper.boundary}{An integer vector of the upper boundary of each grid}
+#'   \item{CNV.start}{An integer vector of the lower boundary of each grid}
+#'   \item{CNV.end}{An integer vector of the upper boundary of each grid}
 #' @keywords internal
 #' 
 .createGrid <- function(CNV) {
@@ -34,8 +34,8 @@
   n_units <- length(BPs) - 1L
   ITV_info <- data.frame("CHR" = rep(CNV$CHR[1L], n_units))
   ITV_info$grid.id <- seq_len(n_units)
-  ITV_info$lower.boundary <- BPs[-{n_units + 1L}]
-  ITV_info$upper.boundary <- BPs[-1L]
+  ITV_info$CNV.start <- BPs[-{n_units + 1L}]
+  ITV_info$CNV.end <- BPs[-1L]
   
   ITV_info
 }
@@ -58,8 +58,8 @@
 #' \itemize{
 #'   \item CHR The chromosome under analysis
 #'   \item id An integer vector of ids for each grid unit
-#'   \item lower.boundary An integer vector of the lower boundary of each grid
-#'   \item upper.boundary An integer vector of the upper boundary of each grid
+#'   \item CNV.start An integer vector of the lower boundary of each grid
+#'   \item CNV.end An integer vector of the upper boundary of each grid
 #' }
 #' 
 #' @returns A data.frame ordered by grid.id containing
@@ -73,7 +73,7 @@
 #' @keywords internal
 .createLongData <- function(CNV, grid) {
   
-  BPs <- c(grid$lower.boundary, max(grid$upper.boundary))
+  BPs <- c(grid$CNV.start, max(grid$CNV.end))
   
   # idx of Match starting BP of each record to its grid unit
   starts <- findInterval(CNV$BP1, BPs)
@@ -88,8 +88,8 @@
   long$TYPE <- rep(CNV$TYPE, times = ends - starts + 1L)
   long$deldup <- ifelse(long$TYPE < 2L, "del", "dup")
   
-  lower_boundary <- grid$lower.boundary[long$grid.id]
-  upper_boundary <- grid$upper.boundary[long$grid.id]
+  lower_boundary <- grid$CNV.start[long$grid.id]
+  upper_boundary <- grid$CNV.end[long$grid.id]
   long$AUC <- abs(2.0 - long$TYPE) * abs(upper_boundary - lower_boundary)
   
   long <- long[!duplicated(long), ]
@@ -125,8 +125,8 @@
 #'   \itemize{
 #'     \item CHR The chromosome
 #'     \item id The grid unit id
-#'     \item lower.boundary The BP value of the left grid boundary
-#'     \item upper.boundary The BP value of the right grid boundary
+#'     \item CNV.start The BP value of the left grid boundary
+#'     \item CNV.end The BP value of the right grid boundary
 #'.  }
 #' }
 #' 

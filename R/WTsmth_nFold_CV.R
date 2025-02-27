@@ -29,22 +29,26 @@
 #'   (`eql`, `keql`, `wcs`, `kwcs`, `wif`, `kwif`), which indicates the
 #'   equal weight, K x equal weight, Cosine similarity, K x cosine similarity, 
 #'   inverse frequency, and K x inverse frequency respectively, where K is the number of
-#'   individuals in each CNVR. `eql` and `keql` gives equal weight to adjacent CNVs.
-#'    `wcs` and `kwcs` allow similar CNV fragments 
-#'   to have more similar effect size. `wif` and `kwif` will encourage CNV with lower frequency to borrow 
+#'   individuals in each CNV active region. 
+#'   `eql` and `keql` gives equal weight to adjacent CNVs.
+#'    `wcs` and `kwcs` allow similar CNV fragments to have more similar effect size. 
+#'    `wif` and `kwif` will encourage CNV with lower frequency to borrow 
 #'   information from nearby more frequent CNV fragments.
 #'   Considering that CNVs usually present in some CNV-active regions and there are
-#'    large regions in between with no CNV at all. K will discribe the number of individuals 
-#'    having any CNV activities in a CNV-active region, and varying the weight according to the sample size
-#'     across regions. 
+#'    large regions in between with no CNV at all. K will describe the number of individuals 
+#'    having any CNV activities in a CNV-active region, and varying the weight according 
+#'    to the sample size across regions. 
 #' @param family A character. The family of the outcome. Must be one of
 #'   "gaussian" (Y is continuous) or "binomial" (Y is binary).
 #' @param cv.control A list object. Allows user to control cross-validation
 #'   procedure. Allowed elements are `n.fold`, the number of cross-validation
-#'   folds with a default value of 5, depends on the sample size, it can be chosen to have other folds (such as 3, 10); 
-#'   `n.core` is the number of cores to use in procedure, check available computation resource before choosing;
+#'   folds with a default value of 5, depends on the sample size, 
+#'   it can be chosen to have other folds (such as 3, 10); 
+#'   `n.core` is the number of cores to use in procedure, 
+#'   check available computation resource before choosing;
 #'    and `stratified`, if TRUE and `family` = "binomial", the folds will be
-#'   stratified within each category of Y (this option is recommended if either category of the outcome is "rare".)
+#'   stratified within each category of Y (this option is recommended if either
+#'    category of the outcome is "rare".)
 #' @param iter.control A list object. Allows the user to control iteratively
 #'   update procedure. Allowed elements are `max.iter`, the maximum number
 #'   of iterations, it guarantees the function returns results within reasonable time;

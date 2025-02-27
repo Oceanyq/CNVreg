@@ -27,7 +27,15 @@ value will be transformed to 2^(lambda2).}
 eql, keql, wcs, kwcs, wif, kwif indicating
 equal weight, K x equal weight, Cosine similarity, K x cosine similarity, 
 inverse frequency, and K x inverse frequency, where K is the number of
-individuals in each CNVR.}
+individuals in each CNV-active region. 
+`eql` and `keql` gives equal weight to adjacent CNVs.
+ `wcs` and `kwcs` allow similar CNV fragments to have more similar effect size. 
+ `wif` and `kwif` will encourage CNV with lower frequency to borrow 
+information from nearby more frequent CNV fragments.
+Considering that CNVs usually present in some CNV-active regions and there are
+ large regions in between with no CNV at all. K will describe the number of individuals 
+ having any CNV activities in a CNV-active region, and varying the weight according 
+ to the sample size across regions.}
 
 \item{family}{A character. The family of the outcome. Must be one of
 "gaussian" (Y is continuous) or "binomial" (Y is binary).}
