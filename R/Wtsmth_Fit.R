@@ -1,4 +1,4 @@
-#' Penalized Regression with Lasso and Weighted Fusion Penalties
+#' Penalized Regression with Lasso and Weighted Fusion Penalties with given parameters
 #'
 #' Performs penalized regression with Lasso penalty and weighted fusion penalty
 #' for a given pair of tuning parameters (lambda1 and lambda2), which is 
