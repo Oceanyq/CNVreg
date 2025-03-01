@@ -4,8 +4,8 @@ test_that("`.orderData()` returns expected errors", {
                "`CNV` must be provided")
   cnv <- data.frame("ID" = 1L:10L,
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(2L, 20L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(200L, 2000L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -43,8 +43,8 @@ test_that("`.orderData()` returns expected results", {
   
   cnv <- data.frame("ID" = as.character(11L:20L),
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(2L, 20L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(200L, 2000L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -75,8 +75,8 @@ test_that(".internalStep1 returns expected results", {
   
   cnv <- data.frame("ID" = c(3L, 2L, 1L,  4L),
                     "CHR" = rep(22L, 4L),
-                    "BP1" = c(1L, 4L, 2L, 5L),
-                    "BP2" = c(3L, 7L, 5L, 9L),
+                    "BP1" = c(100L, 400L, 200L, 500L),
+                    "BP2" = c(300L, 700L, 500L, 900L),
                     "TYPE" = c(0L, 0L, 0L, 0L))
   itv_data <- .breakCNV(cnv)
   
@@ -127,8 +127,8 @@ test_that("prep returns expected errors", {
                "`CNV` must be provided")
   cnv <- data.frame("ID" = 1L:10L,
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(2L, 20L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(200L, 2000L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -154,8 +154,8 @@ test_that("prep returns expected errors", {
 test_that("prep works as expected", {
   cnv <- data.frame("ID" = 11L:20L,
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(3L, 22L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(300L, 2200L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -227,8 +227,8 @@ test_that("prep works as expected", {
 test_that("prep works as expected without Z", {
   cnv <- data.frame("ID" = 11L:20L,
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(3L, 22L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(300L, 2200L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))

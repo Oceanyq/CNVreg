@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-# knitr::opts_knit$set(root.dir = "~/CNVreg_121/vignettes")
 ```
 
 ```{r setup}
@@ -26,14 +25,16 @@ library("CNVreg")
 
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-# load the package
+# load packages required for Rmd
 library("kableExtra")
 library("tidyverse")
 library("ggplot2")
 library("patchwork")
 ```
 
-## Introduction
+## {.tabset}
+
+### Introduction
 
 The *CNVreg* package provides functions to perform copy number variants (CNV) association analysis with penalized regression model. 
 
@@ -41,7 +42,7 @@ This package converts CNVs over a genomic region as a piecewise constant curve t
 
 This package has 3 main functions: 
 
-* `prep()`: Data preprocessing and format conversion.
+* `prep()`: Data preprocessing and format conversion -- required to prepare data for analysis.
 
 * `cvfit_WTSMTH()`: Model fitting and effect estimate with cross-validation(CV). The CV procedure is to tune an optimal model by selecting the best pair of candidate tuning parameters.
 
@@ -51,11 +52,9 @@ This package has 3 main functions:
 All functions use an example data included in the `CNVreg` package.
 
 
-## Example data: CNVCOVY
+### Data
 
 The `CNVCOVY` dataset included in this package contains a small sample of data for demonstration purposes. It has 4 separate data files: copy number variants data in `CNV`, covariate data in `Cov`, and outcome traits `Y_QT` (quantitative) and `Y_BT`(Binary). 
-
-
 
  * `CNV`: A data frame describing CNV data in PLINK format with 5 variables `ID`, `CHR`, `BP1`, `BP2`, and `TYPE`.
  
@@ -68,28 +67,61 @@ Here is how you can load and view the summary of the datasets:
 
 ```{r}
 # load the example dataset
-data("CNVCOVY", package="CNVreg")
+data("CNVCOVY", package = "CNVreg")
 ```
 
+<details><summary>Click to see summary information of each object loaded </summary>
 
-<details><summary>(Click to unfold) Here is the summary of each file in the dataset </summary>
+#### Toy Datasets {.tabset}
+
+##### CNV
+
 ```{r}
 # view the dataset
 summary(CNV)
+```
+
+<br><br>
+
+##### COV
+
+```{r}
+# view the dataset
 summary(Cov)
+```
+
+<br><br>
+
+##### Y_QT
+
+```{r}
+# view the dataset
 summary(Y_QT)
+```
+
+<br><br>
+
+##### Y_BT
+
+```{r}
+# view the dataset
 summary(Y_BT)
 ```
+
+###
+
+<br><br>
+
 </details>
 
 Briefly, the dataset has the CNV (2680 records), covariates (`Sex` and `Age`), and outcome traits for 900 individuals. 
 
 
-## Data preprocessing: the `prep()` function {.tabset}
+### Data preprocessing {.tabset}
 
 The `prep()` function converts an individual's CNV events within a genomic region to fragments, and filters out rare events. It analyzes the adjacency relationship between CNV fragments and prepares different weight options for the penalized regression analysis. 
 
-### Input of function `prep()`
+#### Input of function `prep()`
 
   The function `prep()` has 4 inputs. 
   
@@ -101,7 +133,7 @@ The `prep()` function converts an individual's CNV events within a genomic regio
   
   * `rare.out`: takes a number in [0, 0.5). A default value is 0.05, which excludes CNVs with frequency < $5\%$
 
-### Output of function `prep()` 
+#### Output of function `prep()` 
     
 The output of the `prep()` function has a specially designed "WTsmth.data" format for easy application in the next step for CNV association analysis. It has 6 components.    
   
@@ -119,11 +151,11 @@ The output of the `prep()` function has a specially designed "WTsmth.data" forma
 
 
 
-### Application of `prep()` function
+#### Application of `prep()` function
 
 Here is how you can use the `prep()` function to preprocess `CNV`, `Cov` and an outcome trait. The outcome trait can be a continuous trait `Y_QT` or a binary trait `Y_BT`. The command syntax of the `prep()` function is the same for continuous and binary outcomes. We showcase two application examples, which will be used in the next step to illustrate CNV association analysis with a continuous outcome and a binary outcome. 
 
-#### Application 1: Process `CNV`, `Cov`, and a continuous trait `Y_QT`
+##### Application 1: Process `CNV`, `Cov`, and a continuous trait `Y_QT`
 
 ```{r, warning=FALSE}
 # data preprocessing for a quantitative(continuous) outcome Y_QT
@@ -131,64 +163,67 @@ frag_data_QT <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
 ```
 
 
-<details><summary>(Click to unfold) Here is a more detailed description of the output `frag_data_QT` </summary>
+<details><summary>Click to see the summary details of the output `frag_data_QT` </summary>
 ```{r}
 # Format of `prep()` funtion output
  str(frag_data_QT)
 ```
 </details>
+<br><br>
 
-#### Application 2: Process `CNV`, `Cov`, and a binary trait `Y_BT`
+##### Application 2: Process `CNV`, `Cov`, and a binary trait `Y_BT`
 
 ```{r, warning=FALSE}
 # data preprocessing with a binary trait
 frag_data_BT <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
 ```
 
-Here is an alternative way to prepare data when performing CNV association analysis with the same set of CNVs for multiple outcome traits. Since we have the same `CNV` data, `Cov` data, and a different outcome trait `Y_BT`, we can manually format `Y_BT` to match the format in `frag_data_QT$Y`. 
+There is an alternative way to prepare data when performing CNV association analysis with the same set of CNVs for multiple outcome traits. Since we have the same `CNV` data, `Cov` data, and a different outcome trait `Y_BT`, we can manually format `Y_BT` to match the format in `frag_data_QT$Y`. 
 
-<details><summary>(Click to unfold) Here we provide the command for reference. </summary>
-```{r}
-# It would be useful when we have large CNV data set and perform association analysis for multiple traits with the same set of CNV data. 
+<details><summary>Click to see alternative usage.</summary>
 
+```{r, eval = FALSE}
 ## copy frag_data_QT
-#frag_data_BT <- frag_data_QT
-#
+frag_data_BT <- frag_data_QT
+
 ### replace Y with Y_BT in the correct format: ordered named vector
 ### order the sample in Y_BT as in frag_data_QT$Y
-#rownames(Y_BT) <- Y_BT$ID
-#
-#frag_data_BT$Y <- Y_BT[names(frag_data_QT$Y), "Y"] |> drop()
-#names(frag_data_QT$Y) <- rownames(frag_data_QT$Y) 
+rownames(Y_BT) <- Y_BT$ID
 
-## Directly replace frag_data_QT$Z is also possible, keep in mind to use the correct variable names and sample ID order.
+frag_data_BT$Y <- Y_BT[names(frag_data_QT$Y), "Y"] |> drop()
+names(frag_data_QT$Y) <- rownames(frag_data_QT$Y) 
 ```
+Directly replace `frag_data_QT$Z` is also possible, keep in mind to use the correct variable names and sample ID order.
+
 </details>
 
+<br><br>
 
-## CNV association analysis with cross-validation (CV) {.tabset}
+### Analysis with cross-validation (CV) {.tabset}
 
 The `cvfit_WTSMTH()` function analyzes the association between a continuous/binary trait value and `CNV` while adjusting for the covariates `Cov`. 
 
-### CNV association analysis for a continuous outcome {.tabset}
+#### CNV association analysis for a continuous outcome {.tabset}
+
 We already have `frag_data_QT` prepared in the `prep()` step. We can fit a model to perform CNV association analysis for a continuous outcome using CV to fine-tune tuning parameters and fit an optimal model with the selected parameters. 
   
  
-```{r warning=FALSE}
-  set.seed(12345)
-  QT_TUNE <- cvfit_WTSMTH(data = frag_data_QT, 
-                           lambda1=seq(-8, -3, 1), 
-                           lambda2 = seq(12, 25, 2), 
-                           weight="eql", 
-                           family = "gaussian",
-                           cv.control = list(n.fold = 5L, 
-                                           n.core = 1L, 
-                                           stratified = FALSE),
-                           verbose = FALSE)
+```{r}
+  QT_TUNE <- withr::with_seed(
+    12345,
+    cvfit_WTSMTH(data = frag_data_QT, 
+                 lambda1 = seq(-8, -3, 1), 
+                 lambda2 = seq(12, 25, 2), 
+                 weight = "eql", 
+                 family = "gaussian",
+                 cv.control = list(n.fold = 5L, 
+                                   n.core = 1L, 
+                                   stratified = FALSE),
+                 verbose = FALSE))
 ```
 
 
-#### Input of function `cvfit_WTSMTH()`
+##### Input of function `cvfit_WTSMTH()`
 
 * `data`: The `cvfit_WTSMTH()` function takes a `data` in `WTsmth.data` format, which is the output of `prep()` function, as one of the major inputs, for example,  `frag_data_QT` prepared for the continuous trait and `frag_data_BT` prepared for the binary trait.
 
@@ -208,7 +243,9 @@ We already have `frag_data_QT` prepared in the `prep()` step. We can fit a model
  
 * `verbose`: If choose `verbose` = TRUE, it will print a message about where the program is currently working on. 
 
-#### Output of function `cvfit_WTSMTH()`
+<br><br>
+
+##### Output of function `cvfit_WTSMTH()`
 
 The output of the `cvfit_WTSMTH()` function is a list object containing 3 elements: `Loss`,  `lambda.selected`, and `coef`.
 
@@ -271,7 +308,7 @@ We also zoom in on two highlighted regions with strong signals and adjacent CNVs
 The results illustrate the variable selection and effect smoothness of the penalized regression method for CNV association analysis. 
 
 
-<details><summary>(Click to unfold) CNV coefficient estimate of a fine-tuned model for a continuous outcome.</summary>   
+<details><summary>Click to see CNV coefficient estimates.</summary>   
 ```{r}
 # estimated coefficents for CNV
 QT_TUNE$coef[2:20, ]
@@ -280,6 +317,7 @@ QT_TUNE$coef[2:20, ]
 ```   
 </details>
 
+<br><br>
 
 ```{r warning=FALSE, echo=FALSE}
 # plot the coefficients 
@@ -339,30 +377,31 @@ P + (PA/PB) +
                       legend.text = element_text(size=12), legend.title = element_text(size=12)) 
 ```
 
+<br><br>
 
-
-### CNV association analysis for a binary outcome {.tabset}
+#### CNV association analysis for a binary outcome {.tabset}
 
 
 
 ```{r}
-set.seed(12345)
-BT_TUNE <- cvfit_WTSMTH(frag_data_BT, 
-                         lambda1 = seq(-5.25, -4.75, 0.25), 
-                         lambda2 = seq(2,  8, 2), 
-                         weight="eql",
-                         family="binomial", 
-                         cv.control = list(n.fold = 5L, 
-                                           n.core = 1L, 
-                                           stratified = FALSE),
-                         iter.control = list(max.iter = 8L, 
-                                             tol.beta = 10^(-3), 
-                                             tol.loss = 10^(-6)), 
-                        verbose = FALSE)
+BT_TUNE <- withr::with_seed(
+  12345,
+  cvfit_WTSMTH(frag_data_BT, 
+               lambda1 = seq(-5.25, -4.75, 0.25), 
+               lambda2 = seq(2,  8, 2), 
+               weight = "eql",
+               family = "binomial", 
+               cv.control = list(n.fold = 5L, 
+                                 n.core = 1L, 
+                                 stratified = FALSE),
+               iter.control = list(max.iter = 8L, 
+                                   tol.beta = 10^(-3), 
+                                   tol.loss = 10^(-6)), 
+               verbose = FALSE))
 
 ```
 
-#### Input of function `cvfit_WTSMTH()`
+##### Input of function `cvfit_WTSMTH()`
 
 The CNV association analysis for a bianry outcome has similar inputs as for a continuous outcome. The differences are:
 
@@ -376,8 +415,9 @@ The CNV association analysis for a bianry outcome has similar inputs as for a co
 
     - `iter.control`: For a binary outcome, we can also adjust the `iter.control` list with desired threshold that is deemed converged for coefficient estimate of a binary outcome.  Refer to the user manual for more details. 
 
+<br><br>
 
-#### Output of function `cvfit_WTSMTH()`
+##### Output of function `cvfit_WTSMTH()`
 
 The output of the `cvfit_WTSMTH()` function has the same list object containing 3 elements: `Loss`,  `lambda.selected`, and `coef`.
 
@@ -436,13 +476,13 @@ BT_TUNE$coef[c(1, 21:22), c("Vnames", "coef") ]
 
 Here lists the coefficients for CNVs and the corresponding plots. 
 
-<details><summary>(Click to unfold) CNV coefficient estimate of a fine-tuned model for a binary outcome. </summary>
+<details><summary>Click to see CNV coefficient estimates. </summary>
 ```{r}
 BT_TUNE$coef[2:20, ]
 ```
 </details>
 
-
+<br><br>
 
 ```{r warning=FALSE, echo=FALSE}
 CNV_coef <- BT_TUNE$coef[2:20,]
@@ -491,9 +531,9 @@ P + (PA/PB) +plot_annotation(title = "CNV coefficient estiamte across the genomi
                       legend.text = element_text(size=12), legend.title = element_text(size=12)) 
 ```
 
+<br><br>
 
-
-## CNV association analysis with a given pair of tuning parameters {.tabset}
+### Analysis with fixed tuning parameters {.tabset}
 
 The user can use the function `fit_WTSMTH()` to reproduce the regression result with the selected pair of parameters.
 
@@ -513,7 +553,7 @@ QT_fit <- fit_WTSMTH(frag_data_QT,
                       family="gaussian")
 ```
 
-### Input of function `fit_WTSMTH()`
+#### Input of function `fit_WTSMTH()`
 
 The input variables of function `fit_WTSMTH()` is similar to that of `cvfit_WTSMTH()`.
 
@@ -527,8 +567,9 @@ The input variables of function `fit_WTSMTH()` is similar to that of `cvfit_WTSM
 
 * `iter.control`: for a binary outcome, `iter.control` controls iterative coefficient estimate procedure as described earlier. 
 
+<br><br>
 
-### Output of `fit_WTSMTH()`
+#### Output of `fit_WTSMTH()`
 
 Refit the model with the selected pair of tuning parameters for a continuous outcome `Y_QT`. The coefficient estimate from `fit_WTSMTH()` is the same as the coefficient estimate of `cvfit_WTSMTH()`.
 
@@ -547,14 +588,16 @@ QT_fit[c(1, 21:22), c("Vnames", "coef") ]
 
 Here lists the coefficients for CNVs and the corresponding plots. 
 
-<details><summary>(Click to unfold) CNV coefficient estimate with given parameters for a continuous outcome. </summary>
+<details><summary>Click to see CNV coefficient estimates. </summary>
 ```{r}
 QT_fit[2:20, ]
 ```
 </details>
 
-
+<br><br>
 However, if we choose a random pair of tuning parameters, the function will not have optimal variable selection and effect smoothness performance. 
 
 
 In summary, the `cvfit_WTSMTH()` function is recommended for model fitting with CV. `fit_WTSMTH()` can be used for testing purpose or to reproduce the result.
+
+<br><br>

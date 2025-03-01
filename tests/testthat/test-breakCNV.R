@@ -17,8 +17,8 @@ test_that(".createITVData returns expected results", {
                                4L, 4L))
   expected <- data.frame("CHR" = rep(22L, 19L),
                          "grid.id" = 1L:19L,
-                         "lower.boundary" = 1L:19L,
-                         "upper.boundary" = 2L:20L)
+                         "CNV.start" = 1L:19L,
+                         "CNV.end" = 2L:20L)
   
   expect_equal(.createGrid(cnv), expected)
 })
@@ -54,8 +54,8 @@ test_that("`Break_CNV_interval()` returns expected results; test 1", {
   
   cnv <- data.frame("ID" = 1L:10L,
                     "CHR" = rep(22L, 10L),
-                    "BP1" = seq(1L, 20L, 2L),
-                    "BP2" = seq(2L, 20L, 2L),
+                    "BP1" = seq(100L, 2000L, 200L),
+                    "BP2" = seq(200L, 2000L, 200L),
                     "TYPE" = c(0L, 0L, 1L, 1L,
                                0L, 3L, 3L, 3L,
                                4L, 4L))
@@ -66,14 +66,14 @@ test_that("`Break_CNV_interval()` returns expected results; test 1", {
                                                         0L, 3L, 3L, 3L,
                                                         4L, 4L),
                                              "deldup" = c(rep("del", 5), rep("dup", 5)),
-                                             "AUC" = c(2.0, 2.0, 1.0, 1.0,
-                                                       2.0, 1.0, 1.0, 1.0,
-                                                       2.0, 2.0)),
+                                             "AUC" = c(200.0, 200.0, 100.0, 100.0,
+                                                       200.0, 100.0, 100.0, 100.0,
+                                                       200.0, 200.0)),
                    "grid.info" = data.frame("CHR" = rep(22L, 19L),
                                            "grid.id" = 1L:19L,
-                                           "lower.boundary" = 1L:19L,
-                                           "upper.boundary" = 2L:20L))
-  
+                                           "CNV.start" = seq(100L, 1900L, 100L),
+                                           "CNV.end" = seq(200L, 2000L, 100L)))
+
   expect_equal(.breakCNV(cnv), expected)
 })
 
@@ -82,8 +82,8 @@ test_that("`Break_CNV_interval()` returns expected results; test 2", {
   
   cnv <- data.frame("ID" = 1L:4L,
                     "CHR" = rep(22L, 4L),
-                    "BP1" = c(1L, 10L, 11L, 20L),
-                    "BP2" = c(5L, 12L, 15L, 35L),
+                    "BP1" = c(100L, 1000L, 1100L, 2000L),
+                    "BP2" = c(500L, 1200L, 1500L, 3500L),
                     "TYPE" = c(0L, 0L, 1L, 1L))
   
   expected <- list("long.cnv" = data.frame("ID" = c(1L, 2L, 2L, 3L, 3L, 4L),
@@ -91,11 +91,11 @@ test_that("`Break_CNV_interval()` returns expected results; test 2", {
                                              "grid.id" = c(1L, 3L, 4L, 4L, 5L, 7L),
                                              "TYPE" = c(0L, 0L, 0L, 1L, 1L, 1L),
                                              "deldup" = c(rep("del", 6)),
-                                             "AUC" = c(2*4, 2*1, 2*1, 1*1, 1*3, 1*15)),
+                                             "AUC" = c(2*400, 2*100, 2*100, 1*100, 1*300, 1*1500)),
                    "grid.info" = data.frame("CHR" = rep(22L, 7L),
                                            "grid.id" = 1L:7L,
-                                           "lower.boundary" = c(1L, 5L, 10L, 11L, 12L, 15L, 20L),
-                                           "upper.boundary" = c(5L, 10L, 11L, 12L, 15L, 20L, 35L)))
+                                           "CNV.start" = c(100L, 500L, 1000L, 1100L, 1200L, 1500L, 2000L),
+                                           "CNV.end" = c(500L, 1000L, 1100L, 1200L, 1500L, 2000L, 3500L)))
   expect_equal(.breakCNV(cnv), expected)
 })
 
@@ -130,8 +130,8 @@ test_that("`Break_CNV_interval()` returns expected results; test 3", {
     
     ITV_info <- data.frame("CHR" = rep(cnv$CHR[1L], length(BPs) - 1L),
                            "grid.id" = 1L:{length(BPs) - 1L},
-                           "lower.boundary" = utils::head(BPs, -1L),
-                           "upper.boundary" = utils::tail(BPs, -1L))
+                           "CNV.start" = utils::head(BPs, -1L),
+                           "CNV.end" = utils::tail(BPs, -1L))
     
     
     list("long.cnv" = long_form[order(long_form$grid.id), ],
@@ -140,8 +140,8 @@ test_that("`Break_CNV_interval()` returns expected results; test 3", {
   
   cnv <- data.frame("ID" = 1L:4L,
                     "CHR" = rep(22L, 4L),
-                    "BP1" = c(1L, 10L, 11L, 20L),
-                    "BP2" = c(5L, 12L, 15L, 35L),
+                    "BP1" = c(100L, 1000L, 1100L, 2000L),
+                    "BP2" = c(500L, 1200L, 1500L, 3500L),
                     "TYPE" = c(0L, 0L, 1L, 1L))
   
   expected <- alternative_func(cnv)

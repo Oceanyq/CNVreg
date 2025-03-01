@@ -1,7 +1,7 @@
 cnv <- data.frame("ID" = 11L:20L,
                   "CHR" = rep(22L, 10L),
-                  "BP1" = seq(1L, 20L, 2L),
-                  "BP2" = seq(3L, 22L, 2L),
+                  "BP1" = seq(100L, 2000L, 200L),
+                  "BP2" = seq(300L, 2200L, 200L),
                   "TYPE" = c(0L, 0L, 1L, 1L,
                              0L, 3L, 3L, 3L,
                              4L, 4L))
@@ -141,14 +141,23 @@ test_that("`cvfit_WTSMTH()` returns expected results", {
     loss_matrix <- loss_matrix |> t() |> data.frame()
     
     colnames(loss_matrix) <- lambda1
-    loss_matrix$lambda2 <- lambda2
+    loss_matrix$Lambda2 <- lambda2
   
     expected <-  list("Loss" = loss_matrix[, c(3,1,2)],
                       "selected.lambda" = c(lambda1[use[1L]], lambda2[use[2L]]),
                       "coef" = beta_y_cv)
   })
   
-  expect_equal(withr::with_seed(
+  tt <- (cvfit_WTSMTH(data, lambda1, lambda2, "keql",
+                     family = "gaussian", 
+                     cv.control = list(n.fold = 3L, 
+                                       n.core = 1L, 
+                                       stratified = FALSE),
+                     iter.control = list(max.iter = 8L, 
+                                         tol.beta = 10^(-3), 
+                                         tol.loss = 10^(-6))))
+
+    expect_equal(withr::with_seed(
     25234,
     cvfit_WTSMTH(data, lambda1, lambda2, "keql",
                  family = "gaussian", 

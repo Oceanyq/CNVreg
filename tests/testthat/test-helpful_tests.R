@@ -200,8 +200,8 @@ test_that("`.isCNV returns expected errors", {
 
   expect_equal(.isCNV(data.frame("ID"= 1L:10L,
                                  "CHR"= rep(22L, 10L),
-                                 "BP1"= seq(1L, 20L, 2L),
-                                 "BP2"= seq(2L, 20L, 2L),
+                                 "BP1"= seq(100L, 2000L, 200L),
+                                 "BP2"= seq(200L, 2000L, 200L),
                                  "TYPE"= c(0L, 0L, 1L, 1L,
                                            0L, 3L, 3L, 3L,
                                            4L, 4L))), TRUE)

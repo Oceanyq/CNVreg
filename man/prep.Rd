@@ -2,7 +2,7 @@
 % Please edit documentation in R/prep.R
 \name{prep}
 \alias{prep}
-\title{Function `prep()`}
+\title{Prepare Data for Analysis}
 \usage{
 prep(CNV, Y, Z = NULL, rare.out = 0.05)
 }
@@ -47,38 +47,20 @@ An S3 object of class "WTsmth.data" extending a list object containing
 }
 }
 \description{
-Function `prep()` converts an individual's CNV events within a genomic 
- region (from one chromosome) to a CNV profile curve, further processes it as CNV fragments, 
- and filter out rare fragments. It analyzes the adjacency relationship 
- between CNV fragments and prepares different options of weight matrices
- for the penalized regression analysis. In addition, it 
- formats data into `WTsmth.data` format for regression analysis.
+Required preprocessing of analysis data. Function converts an individual's 
+  CNV events within a genomic region (from one chromosome) to a CNV profile 
+  curve, further processes it as CNV fragments, and filter out rare fragments. 
+  In addition, the adjacency relationship between CNV fragments is analyzed
+  and weight matrices are generated. The resulting `WTsmth.data` object, 
+  is provided as input to the regression analysis.
 }
 \examples{
-# Note that the example data set is smaller than actual CNV data to accommodate 
-# a fast example.
-# Real data analysis would take a little bit longer time to run. 
+# Note we use here a very small example data set to expedite examples. 
 
-# load provided illustrative toy dataset with a continuous outcome and a 
-# binary outcome
-library("CNVreg")
+# load toy dataset
 data("CNVCOVY")
-#prepare data format for regression analysis
 
-## first try with the continuous outcome Y_QT
+## Continuous outcome Y_QT
 frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
-
-## Second, to prepare for the binary outcome Y_BT,
-# We can directly replace frag_data$Y with Y_BT in the correct format.
-
-rownames(Y_BT) <- Y_BT$ID
-#
-##order the sample in Y_BT as in frag_data$Y and name it
-frag_data$Y <- Y_BT[names(frag_data$Y), "Y"] |> drop()
-names(frag_data$Y) <- rownames(frag_data$Z) 
-
-# Or, we can repeat the procedure using prep() function with Y=Y_BT
-# frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
-
 
 }

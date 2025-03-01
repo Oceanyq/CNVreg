@@ -2,7 +2,7 @@
 % Please edit documentation in R/Wtsmth_Fit.R
 \name{fit_WTSMTH}
 \alias{fit_WTSMTH}
-\title{Function fit_WTSMTH()}
+\title{Penalized Regression with Lasso and Weighted Fusion Penalties}
 \usage{
 fit_WTSMTH(
   data,
@@ -59,38 +59,36 @@ determined by the user based on prior knowledge or use any number just for
 testing purpose.
 }
 \examples{
-# Note that the example data set is smaller than actual CNV data to 
-# accommodate a fast example.
-# Real data analysis would take a little bit longer time to run. 
+# Note we use here a very small example data set to expedite examples. 
 
-# load provided illustrative toy dataset with a continuous outcome 
-# and a binary outcome
-library("CNVreg")
+# load toy dataset
 data("CNVCOVY")
-#prepare data format for regression analysis
 
-## first try with the continuous outcome Y_QT
+# prepare data format for regression analysis
+
+## Continuous outcome Y_QT
 frag_data <- prep(CNV = CNV, Y = Y_QT, Z = Cov, rare.out = 0.05)
 QT_fit <- fit_WTSMTH(frag_data, 
-                        lambda1 =-5, 
-                        lambda2 = 21, 
-                        weight="eql", 
-                        family="gaussian")
+                     lambda1 = -5, 
+                     lambda2 = 21, 
+                     weight = "eql", 
+                     family = "gaussian")
                         
-## Second, to prepare for the binary outcome Y_BT,
-# We can directly replace frag_data$Y with Y_BT in the correct format.
+## Binary outcome Y_BT
+
+# We can directly replace frag_data$Y with Y_BT in the correct format,
+# ensuring that the ordering matches that of the prepared object.
 
 rownames(Y_BT) <- Y_BT$ID
-
-##order the sample in Y_BT as in frag_data$Y and name it
 frag_data$Y <- Y_BT[names(frag_data$Y), "Y"] |> drop()
 names(frag_data$Y) <- rownames(frag_data$Z) 
 
-# Or, we can also repeat the procedure using prep() function 
+# Or, we can also repeat the prep() call
 # frag_data <- prep(CNV = CNV, Y = Y_BT, Z = Cov, rare.out = 0.05)
+
 BT_fit <- fit_WTSMTH(frag_data, 
                         lambda1 = -5, 
                         lambda2 = 6, 
-                        weight="eql",
-                        family="binomial")
+                        weight = "eql",
+                        family = "binomial")
 }

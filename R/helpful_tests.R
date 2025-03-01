@@ -117,11 +117,11 @@
   }
 
   if (!isTRUE(all.equal(CNV$BP1, round(CNV$BP1)))) {
-    warning("Non-integer CNV break points exit in BP1")
+    warning("Non-integer CNV break points exist in BP1")
   }
   
   if (!isTRUE(all.equal(CNV$BP2, round(CNV$BP2)))) {
-    warning("Non-integer CNV break points exit in BP2")
+    warning("Non-integer CNV break points exist in BP2")
   }
   if (any(CNV$BP2 - CNV$BP1 < 50)) {
     warning(" There are CNV events with length <50bp, double check the data or units of data")

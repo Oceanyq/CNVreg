@@ -34,18 +34,18 @@ test_that("`.wideDataRaw()` returns expected results; test 1", {
   
   cnv <- data.frame("ID" = c(3L, 2L, 1L,  4L),
                     "CHR" = rep(22L, 4L),
-                    "BP1" = c(1L, 4L, 2L, 5L),
-                    "BP2" = c(3L, 7L, 5L, 9L),
+                    "BP1" = c(100L, 400L, 200L, 500L),
+                    "BP2" = c(300L, 700L, 500L, 900L),
                     "TYPE" = c(0L, 0L, 0L, 0L))
   itv_data <- .breakCNV(cnv)
 
-  expected <- as(matrix(c(0, 2, 2, 2, 0, 0,
-                          0, 0, 0, 2, 4, 0,
-                          2, 2, 0, 0, 0, 0,
-                          0, 0, 0, 0, 4, 4), 
+  expected <- as(matrix(c(0, 200, 200, 200, 0, 0,
+                          0, 0, 0, 200, 400, 0,
+                          200, 200, 0, 0, 0, 0,
+                          0, 0, 0, 0, 400, 400), 
                         ncol = 6L, nrow = 4L, byrow = TRUE, 
                         dimnames = list(1L:4L, 1L:6L) ), "sparseMatrix")
-  
+
   expect_equal(.wideDataRaw(itv_data$long.cnv), expected)
 })
 

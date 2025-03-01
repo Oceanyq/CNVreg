@@ -13,7 +13,7 @@ Imports: stats, Matrix, doParallel, dplyr, foreach, glmnet, tidyr
 Encoding: UTF-8
 NeedsCompilation: no
 LazyData: true
-Suggests: rmarkdown, knitr, rlang, tidyverse, markdown, kableExtra, patchwork, ggplot2
+Suggests: rmarkdown, knitr, rlang, tidyverse, markdown, kableExtra, patchwork, ggplot2, withr
 Maintainer: Shannon T. Holloway <shannon.t.holloway@gmail.com>
 RoxygenNote: 7.3.2
 Collate: 
