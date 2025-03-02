@@ -157,7 +157,7 @@ cvfit_WTSMTH <- function(data, lambda1 = seq(-8, 0, 1), lambda2 = seq(-8, 8, 1),
   # nfold split (stratified if indicated)
   tr <- .nfoldSplit(Y = data$Y, unique(names(data$Y)), cv.control = cv.control)
   
-  if(cv.control$stratified == TRUE){
+  if(cv.control$stratified == TRUE && verbose){
     table(data$Y, tr) |> print()
   }
   

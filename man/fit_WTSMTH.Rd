@@ -2,7 +2,7 @@
 % Please edit documentation in R/Wtsmth_Fit.R
 \name{fit_WTSMTH}
 \alias{fit_WTSMTH}
-\title{Penalized Regression with Lasso and Weighted Fusion Penalties}
+\title{Penalized Regression with Lasso and Weighted Fusion Penalties with Given Parameters}
 \usage{
 fit_WTSMTH(
   data,

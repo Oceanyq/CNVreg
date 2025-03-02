@@ -48,7 +48,7 @@
   seq_s <- 1L
   CNVR_id <- 1L
   while (length(not.rare.idx) > 0L) {
-    #print(CNVR_id)
+
     diffs <- diff(not.rare.idx)
     
     # define a sequence of fragments with ending positions
@@ -92,7 +92,7 @@
     }
     
     CNVR_id = CNVR_id + 1L
-    #print(CNVR_id)
+
     not.rare.idx <- not.rare.idx[-(seq_s:seq_e)]
     
   }
