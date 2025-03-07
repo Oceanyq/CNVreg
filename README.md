@@ -18,4 +18,5 @@ This package has 3 main functions:
 
 
 We have a more detailed tutorial for all functions using an example data included in the `CNVreg` package. 
+
 Please see the `CNVreg` `vignette` for a quick tour of the CNVreg package.
