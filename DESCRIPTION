@@ -7,7 +7,7 @@ Authors@R: c(person("Yaqin", "Si",email = "ysi4@ncsu.edu", role = c("aut")),
              person("Jung-Ying", "Tzeng",email = "jytzeng@ncsu.edu", role = c("ctb")))
 Description: Copy number variants association analysis with Lasso and Weighted Fusion penalized regression. 
 License: GPL-3
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.1.0)
 VignetteBuilder: knitr
 Imports: stats, Matrix, doParallel, dplyr, foreach, glmnet, tidyr
 Encoding: UTF-8
