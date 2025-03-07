@@ -18,4 +18,4 @@ This package has 3 main functions:
 
 
 We have a more detailed tutorial for all functions using an example data included in the `CNVreg` package. 
-Please see the <a href="https://rstudio.penn-ngc.org/s/8859acfc78a31199fdc8c/files/CNVreg_121/vignettes/CNVReg_vig.html"> **CNVreg** tutorial </a> for detailed usage of the CNVreg package.
+Please see the **CNVreg** vignette for detailed usage of the CNVreg package.
