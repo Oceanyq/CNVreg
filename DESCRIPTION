@@ -9,9 +9,11 @@ Description: CNVreg performs copy number variants association analysis with Lass
 CNVreg uses a "CNV profile curve" to represent an individual’s CNV events across a genomic region so to capture variations 
 in CNV length and dosage. When evaluating association, the CNV profile curve is directly used as a predictor in the 
 regression model, avoiding the need to predefine CNV loci. CNV profile regression estimates CNV effects at each genome
-position, making the results comparable across different studies. The penalized regression model encourages sparsity 
+position, making the results comparable across different studies. The penalization encourages sparsity 
 in variable selection with a Lasso penalty and encourages effect smoothness between consecutive CNV events with a weighted
 fusion penalty, where the weight controls the level of smoothing between adjacent CNVs. 
+For more details, see Si (2024)
+<doi:10.1101/2024.11.23.624994>
 License: GPL-3
 Depends: R (>= 3.5.0)
 VignetteBuilder: knitr
