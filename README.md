@@ -1,5 +1,5 @@
 
- `CNVreg` Package
+ `CNVreg` Package (available R CRAN  [CNVreg](https://cran.r-project.org/web/packages/CNVreg/index.html)
 
 
 ## Introduction
@@ -19,4 +19,4 @@ This package has 3 main functions:
 
 We have a more detailed tutorial for all functions using an example data included in the `CNVreg` package. 
 
-Please see the `CNVreg` `vignette` for a quick tour of the CNVreg package.
+Please see the [`CNVreg` `vignette`](https://cran.r-project.org/web/packages/CNVreg/vignettes/CNVReg_vig.html) for a quick tour of the CNVreg package.
