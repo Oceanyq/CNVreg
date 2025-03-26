@@ -1,5 +1,5 @@
 ## code used on HPC to simulate a binary scenario 1 with causal CNV
-## in the middle of a consective region.
+## is the whole region of a consective region.
 vi bnry_wt_S1TX.R
 
 #Check correlation: 
